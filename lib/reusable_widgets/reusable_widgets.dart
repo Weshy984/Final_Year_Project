@@ -17,7 +17,7 @@ TextField reusableTextField(String text, IconData icon, bool isPasswordType, Tex
         labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
         filled: true,
         floatingLabelBehavior: FloatingLabelBehavior.never,
-        fillColor: Colors.grey,
+        fillColor: const Color(0xffd9d9d9),
 
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -32,10 +32,33 @@ TextField reusableTextField(String text, IconData icon, bool isPasswordType, Tex
 Container signInSignUpBtn (
     BuildContext context, bool isLogin, Function onTap){
   return Container(
-    width: MediaQuery.of(context).size.width,
+    width: MediaQuery.of(context).size.width*0.5,
     height: 50,
     margin: const EdgeInsets.fromLTRB(0, 10, 0, 20),
     decoration: BoxDecoration(borderRadius: BorderRadius.circular(90)),
+    child: ElevatedButton(
+      onPressed: (){
+        onTap();
+      },
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.resolveWith((states){
+          if(states.contains(MaterialState.pressed)){
+            return const Color(0xff1D3557);
+          }
+            return const Color(0xffd9d9d9);
+        }),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))
+      ),
+      child: Text(
+        isLogin ? "Sign In" : "Sign Up",
+        style: const TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    ),
 
   );
 }
