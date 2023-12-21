@@ -32,7 +32,7 @@ class _SignUpScreenState extends State<SignUpScreen>{
                 const SizedBox(
                   height: 50,
                 ),
-                const Image(image: AssetImage("assets/images/logo.png")),
+                const Image(image: AssetImage("assets/images/logo1.jpeg")),
                 const SizedBox(
                   height: 50,
                 ),
