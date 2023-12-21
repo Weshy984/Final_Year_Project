@@ -181,7 +181,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: MediaQuery.of(context).size.width*0.5,
                           height: 50,
                           child: ElevatedButton(
-                              onPressed: (){},
+                              onPressed: (){
+                                print("btn clicked");
+                              },
                               style: ButtonStyle(
                                 backgroundColor: const MaterialStatePropertyAll<Color>(Color(0xffa8dadc)),
                                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
