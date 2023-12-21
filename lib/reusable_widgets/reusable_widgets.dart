@@ -1,3 +1,5 @@
+//import 'dart:js';
+
 import 'package:flutter/material.dart';
 
 TextField reusableTextField(String text, IconData icon, bool isPasswordType, TextEditingController controller){
@@ -60,5 +62,38 @@ Container signInSignUpBtn (
       ),
     ),
 
+  );
+}
+Padding reusableTextField2(String text, IconData icon,  TextEditingController controller){
+  return Padding(
+    padding: const EdgeInsets.only(right: 10),
+    child: SizedBox(
+      height: 45,
+      //width: MediaQuery.of(context as BuildContext).size.width,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+            prefixIcon: Icon(
+                icon,
+                color: const Color(0xffD9D9D9)
+            ),
+            // suffixIcon: const Icon(
+            //   Icons.compare_arrows,
+            //   color: Color(0xffE63946),
+            // ),
+            labelText: text,
+            labelStyle: const TextStyle(color: Colors.black,
+              fontSize: 20,
+              fontFamily: 'JetBrains Mono',
+              fontWeight: FontWeight.w400,),
+            filled: true,
+            floatingLabelBehavior: FloatingLabelBehavior.never,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(5),
+                borderSide: const BorderSide(width: 1,style: BorderStyle.solid,color: Color(0xffd9d9d9))
+            )
+        ),
+      ),
+    ),
   );
 }
