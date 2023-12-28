@@ -5,7 +5,7 @@ import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/auth/signup.dart';
 import 'package:tiqiti/screens/home_screen.dart';
 
-Future main() async{
+void main(){
   runApp(const MyApp());
 }
 
