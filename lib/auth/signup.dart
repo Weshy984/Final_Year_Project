@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/reusable_widgets/reusable_widgets.dart';
-import 'package:tiqiti/screens/home_screen.dart';
+import 'package:tiqiti/screens/bottom_bar.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -31,7 +32,7 @@ class _SignUpScreenState extends State<SignUpScreen>{
                 const SizedBox(
                   height: 50,
                 ),
-                const Image(image: AssetImage("assets/images/logo.png")),
+                const Image(image: AssetImage("assets/images/logo1.jpeg")),
                 const SizedBox(
                   height: 50,
                 ),
@@ -73,7 +74,7 @@ class _SignUpScreenState extends State<SignUpScreen>{
                 Center(
                   child: signInSignUpBtn(context, false, (){
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context)=>const HomeScreen()));
+                        MaterialPageRoute(builder: (context)=>const BottomBar()));
                   }),
                 ),
                 const SizedBox(

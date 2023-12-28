@@ -29,8 +29,8 @@ class _SignInState extends State<SignIn> {
                 20, MediaQuery.of(context).size.height * 0.1, 20, 0),
             child: Column(
               children: <Widget>[
-                Center(
-                    child: Image(image: AssetImage("assets/images/logo.png"))
+                const Center(
+                    child: Image(image: AssetImage("assets/images/logo1.jpeg"))
                 ),
                 const SizedBox(
                   height: 20,
