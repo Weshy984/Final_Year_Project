@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:tiqiti/screens/home_screen.dart';
 import 'package:tiqiti/screens/seat_booking_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -22,29 +23,34 @@ class _SearchScreenState extends State<SearchScreen> {
             decoration: const BoxDecoration(color: Color(0xFF1D3557)),
             child: Column(
               children: [
-                const Gap(20),
-                Row(
+                const Gap(40),
+                Padding(
+                  padding: const EdgeInsets.only(left: 40),
+                  child: Row(
                     children: [
-                      IconButton(
-                          onPressed:(){
-                            Navigator.of(context).pop();
+                      GestureDetector(
+                          onTap:(){
+                            Navigator.push(context,
+                              MaterialPageRoute(builder: (context)=>const HomeScreen())
+                            );
                           },
-                          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
-                      const Gap(60),
+                          child: const Icon(Icons.arrow_back,color: Colors.white,)
+                      ),
+                      const Gap(50),
                       const Center(
                         child: Column(
                           children: [
                             Text("Eldoret to Kisumu",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 25,
+                                fontSize: 23,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
                             Text("June 24 2023",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w400
                               ),
                             )
@@ -53,6 +59,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     ],
                   ),
+                ),
                 const Gap(20),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

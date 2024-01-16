@@ -1,11 +1,9 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/auth/signup.dart';
-import 'package:tiqiti/screens/home_screen.dart';
 
-void main(){
+void main() {
   runApp(const MyApp());
 }
 
@@ -16,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tiqiti',
+      title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(brightness: Brightness.light),
       home:AnimatedSplashScreen(
@@ -28,11 +26,6 @@ class MyApp extends StatelessWidget {
           splashTransition: SplashTransition.scaleTransition,
           backgroundColor: const Color(0xFFF1FAEE),
           nextScreen: const SignUpScreen()),
-      routes: {
-        '/login':(context)=> const SignIn(),
-        '/signUp':(context)=> const SignUpScreen(),
-        '/home':(context)=> const HomeScreen(),
-      },
     );
   }
 }
