@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:tiqiti/reusable_widgets/reusable_widgets.dart';
+import 'package:tiqiti/screens/profile_screen.dart';
 import 'package:tiqiti/screens/search_screen.dart';
 import 'package:tiqiti/screens/ticket_view.dart';
 
@@ -22,11 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF1FAEE),
       body:ListView(
         children: [
-          const SizedBox(
-              child: Row(
+          Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.only(top: 50,left: 10),
                     child:
                     Column(
@@ -71,11 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 40,left: 20),
-                    child: Image(image: AssetImage("assets/images/person_icon.png")),)
+                    padding: const EdgeInsets.only(top: 40,left: 20),
+                    child: GestureDetector(
+                        onTap: (){
+                          Navigator.push(context,
+                            MaterialPageRoute(builder: (context)=>const ProfileScreen())
+                          );
+                        },
+                        child: const Image(image: AssetImage("assets/images/person_icon.png"))),)
                 ],
-              )
-          ),
+              ),
           const Gap(20),
           Padding(padding: const EdgeInsets.only(left: 20,right: 15),
             child: Row(
