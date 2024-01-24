@@ -2,34 +2,79 @@
 
 import 'package:flutter/material.dart';
 
-TextField reusableTextField(String text, IconData icon, bool isPasswordType, TextEditingController controller){
-  return TextField(
-    controller: controller,
-    obscureText: isPasswordType,
-    enableSuggestions: !isPasswordType,
-    autocorrect: !isPasswordType,
-    cursorColor: const Color(0xFFCFD8DC),
-    style: TextStyle(color: Colors.black.withOpacity(0.9)),
-    decoration: InputDecoration(
-        prefixIcon: Icon(
-          icon,
-          color: Colors.black.withOpacity(0.7),
+Widget makeInput({label,obscureText=false,required =true,controller,type,icon}){
+  return Padding(
+    padding: const EdgeInsets.only(top: 15.0,bottom: 15.0),
+    child:
+      TextFormField(
+        cursorColor: const Color(0xFFCFD8DC),
+        obscureText: obscureText,
+        controller: controller,
+        keyboardType: type,
+        enableSuggestions: !obscureText,
+        autocorrect: !obscureText,
+        validator:(value){
+          if(value==null || value.isEmpty){
+            return 'Please enter your $label';
+          }
+            return null;
+        },
+        style: TextStyle(
+          color: Colors.black.withOpacity(0.9),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
         ),
-        labelText: text,
-        labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
-        filled: true,
-        floatingLabelBehavior: FloatingLabelBehavior.never,
-        fillColor: const Color(0xffd9d9d9),
+        onChanged: (value){
+          debugPrint("an entry added to this field");
+        },
+        decoration: InputDecoration(
+          prefixIcon: Icon(
+            icon,
+            color: Colors.black.withOpacity(0.7),
+          ),
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+          filled: true,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          fillColor: const Color(0xffd9d9d9),
 
-        border: OutlineInputBorder(
+          border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.0),
             borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
-        )
-    ),
-    keyboardType: isPasswordType ? TextInputType.visiblePassword : TextInputType.emailAddress,
-
+          )
+        ),
+      )
   );
 }
+
+// TextField reusableTextField(String text, IconData icon, bool isPasswordType, TextEditingController controller){
+//   return TextField(
+//     controller: controller,
+//     obscureText: isPasswordType,
+//     enableSuggestions: !isPasswordType,
+//     autocorrect: !isPasswordType,
+//     cursorColor: const Color(0xFFCFD8DC),
+//     style: TextStyle(color: Colors.black.withOpacity(0.9)),
+//     decoration: InputDecoration(
+//         prefixIcon: Icon(
+//           icon,
+//           color: Colors.black.withOpacity(0.7),
+//         ),
+//         labelText: text,
+//         labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+//         filled: true,
+//         floatingLabelBehavior: FloatingLabelBehavior.never,
+//         fillColor: const Color(0xffd9d9d9),
+//
+//         border: OutlineInputBorder(
+//             borderRadius: BorderRadius.circular(15.0),
+//             borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
+//         )
+//     ),
+//     keyboardType: isPasswordType ? TextInputType.visiblePassword : TextInputType.emailAddress,
+//
+//   );
+// }
 
 Container signInSignUpBtn (
     BuildContext context, bool isLogin, Function onTap){

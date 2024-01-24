@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:tiqiti/reusable_widgets/thick_container.dart';
+//import 'package:tiqiti/reusable_widgets/thick_container.dart';
 import 'package:tiqiti/reusable_widgets/tickets_tab.dart';
 import 'package:tiqiti/screens/ticket_view.dart';
 

@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("You\'ve got a new award",
+                        Text("You've got a new award",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
