@@ -1,3 +1,4 @@
+//import 'package:dropdownfield2/dropdownfield2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -14,11 +15,56 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _fromTextController = TextEditingController();
-  final TextEditingController _toTextController = TextEditingController();
-  final TextEditingController _dateTextController = TextEditingController();
+  //_fromTextController, _toTextController,
+ late TextEditingController _dateTextController;
+ bool isRoundTripSelected = false;
+ String? _selectedLocation;
+ String? _destination;// Variable to hold the selected location
+ List<String> locations = [
+   'Nyeri',
+   'Karatina',
+   'Sagana',
+   'Thika',
+   'Juja',
+   'Kenyatta Road',
+   'Kimbo',
+   'Ruiru',
+   'Githurai',
+   'Roysambu',
+   'Olsopps',
+   'Ngara',
+   'Nairobi'
+ ];
+ /*DateTime? _selectedDate; // Track selected date
+
+ Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+   final DateTime? picked = await showDatePicker(
+     context: context,
+     initialDate: _selectedDate ?? DateTime.now(),
+     firstDate: DateTime.now(),
+     lastDate: DateTime(2101),
+   );
+
+   if (picked != null && picked != _selectedDate) {
+     setState(() {
+       _selectedDate = picked;
+       // Update the controller
+       controller.text = _selectedDate.toString();
+     });
+   }
+ }*/
+ @override
+ void initState(){
+   //TODO:implement initState
+   super.initState();
+   //_fromTextController=TextEditingController();
+   //_toTextController=TextEditingController();
+   _dateTextController=TextEditingController();
+ }
   @override
   Widget build(BuildContext context) {
+    Color oneWayTextColor = isRoundTripSelected ? const Color(0xFF9291B1) : Colors.black;
+    Color roundTripTextColor = isRoundTripSelected ? Colors.black : const Color(0xFF9291B1);
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body:ListView(
@@ -119,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 10),
             child: Container(
-              height: 380,
+              //height: 380,
               decoration: ShapeDecoration(
                 color: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -138,11 +184,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (kDebugMode) {
                                 print("one way trip");
                               }
+                              setState(() {
+                                isRoundTripSelected = false; // One-way trip selected
+                              });
                             },
-                            child: const Text(
+                            child: Text(
                               'One-way ',
                               style: TextStyle(
-                                color: Colors.black,
+                                color: oneWayTextColor,
                                 fontSize: 20,
                                 fontFamily: 'JetBrains Mono',
                                 fontWeight: FontWeight.w700,
@@ -154,12 +203,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: (){
                             if (kDebugMode) {
                               print("round trip");
-
-                            }},
-                          child: const Text(
+                            }
+                            setState(() {
+                              isRoundTripSelected = true; // Round trip selected
+                            });
+                          },
+                          child: Text(
                               'Round-trip',
                               style: TextStyle(
-                                color: Color(0xFF9291B1),
+                                color: roundTripTextColor,
                                 fontSize: 20,
                                 fontFamily: 'JetBrains Mono',
                                 fontWeight: FontWeight.w400,
@@ -169,15 +221,90 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       ],
                     ),
-                    const Gap(20),
-                    reusableTextField2("Enter Pickup", Icons.navigation_outlined, _fromTextController),
-                    const Gap(20),
-                    reusableTextField2("Enter Destination", Icons.place, _toTextController),
-                    const Gap(20),
-                    reusableTextField2("Travel Date", Icons.calendar_today_outlined, _dateTextController),
-                    const Gap(20),
-                    reusableTextField2("Return Date", Icons.add, _dateTextController),
-                    const Gap(20),
+                    const Gap(15),
+                    Form(
+                        child: Column(
+                          children: <Widget>[
+                            DropdownButtonFormField(
+                              value: _selectedLocation,
+                              decoration: InputDecoration(
+                                  prefixIcon: Icon(
+                                    Icons.navigation_outlined,
+                                    color: Colors.black.withOpacity(0.7),
+                                  ),
+                                  labelText: "Enter pickup location",
+                                  labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+                                  filled: true,
+                                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                                  fillColor: const Color(0xffd9d9d9),
+
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                      borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
+                                  )
+                              ),
+                              items: locations.map((String location) {
+                                  return DropdownMenuItem<String>(
+                                    value: location,
+                                    child: Text(location),
+                                  );
+                                }).toList(),
+                              onChanged: (String? newValue) {
+                                  setState(() {
+                                    _selectedLocation = newValue;
+                                  });
+                                },
+                            ),
+                            const Gap(15),
+                            DropdownButtonFormField(
+                              value: _destination,
+                              decoration: InputDecoration(
+                                  prefixIcon: Icon(
+                                    Icons.place,
+                                    color: Colors.black.withOpacity(0.7),
+                                  ),
+                                  labelText: "Select Destination",
+                                  labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+                                  filled: true,
+                                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                                  fillColor: const Color(0xffd9d9d9),
+
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                      borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
+                                  )
+                              ),
+                              items: locations.map((String location) {
+                                  return DropdownMenuItem<String>(
+                                    value: location,
+                                    child: Text(location),
+                                  );
+                                }).toList(),
+                              onChanged: (String? newValue) {
+                                  setState(() {
+                                    _destination = newValue;
+                                  });
+                                },
+                            ),
+                            makeInput(
+                                label: "Travel Date",
+                                icon: Icons.calendar_today_outlined,
+                                controller: _dateTextController,
+                                type: TextInputType.datetime
+                            ),
+                            Visibility(
+                                visible: isRoundTripSelected, // Show only when round trip is selected
+                                child: makeInput(
+                                  label: "Return Date",
+                                  icon: Icons.add,
+                                  controller: _dateTextController,
+                                  type: TextInputType.datetime
+                                ))
+                          ],
+                        )
+                    ),
+                                       // reusableTextField2("Enter Destination", Icons.place, _toTextController),
+                    const Gap(10),
                     Center(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width*0.5,
@@ -205,6 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    const Gap(15)
                   ],
                 ),
               ),

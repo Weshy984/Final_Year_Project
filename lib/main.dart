@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/auth/signup.dart';
+import 'package:tiqiti/screens/bottom_bar.dart';
 import 'package:tiqiti/screens/home_screen.dart';
 
-void main(){
+void main() async {
+  //WidgetsFlutterBinding.ensureInitialized();
+  //await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -32,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/login':(context)=> const SignIn(),
         '/signUp':(context)=> const SignUpScreen(),
         '/home':(context)=> const HomeScreen(),
+        '/bottomBar':(context)=>const BottomBar(),
       },
     );
   }
