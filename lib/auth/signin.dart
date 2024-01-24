@@ -12,8 +12,23 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final TextEditingController _emailTextController = TextEditingController();
-  final TextEditingController _passwordTextController = TextEditingController();
+  late TextEditingController _emailTextController, _passwordTextController;
+  bool processing = false;
+  bool _isHidden = true;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _emailTextController = TextEditingController();
+    _passwordTextController = TextEditingController();
+  }
+  void _togglePasswordView() {
+    setState(() {
+      _isHidden = !_isHidden;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,23 +51,82 @@ class _SignInState extends State<SignIn> {
                   height: 20,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 15,right: 15),
-                  child: reusableTextField("E-mail", Icons.mail, false, _emailTextController),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 15,right: 15),
-                  child: reusableTextField("Password", Icons.lock, false, _passwordTextController),
+                  padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                  child: Form(
+                    key: _formKey,
+                    child:Column(
+                      children: <Widget>[
+                        makeInput(
+                          label: "E-mail",
+                          icon: Icons.email,
+                          type: TextInputType.emailAddress,
+                          controller: _emailTextController
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15,bottom: 15),
+                          child: TextFormField(
+                            cursorColor: const Color(0xFFCFD8DC),
+                            obscureText: _isHidden,
+                            controller: _passwordTextController,
+                            keyboardType: TextInputType.visiblePassword,
+                            enableSuggestions: _isHidden,
+                            autocorrect: _isHidden,
+                            validator:(value){
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your Password';
+                              }
+                              return null;
+                            },
+                            onSaved: (value){},
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.9),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+
+                            decoration: InputDecoration(
+                                prefixIcon: Icon(
+                                  Icons.lock,
+                                  color: Colors.black.withOpacity(0.7),
+                                ),
+                                labelText: "Password",
+                                labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+                                filled: true,
+                                floatingLabelBehavior: FloatingLabelBehavior.never,
+                                fillColor: const Color(0xffd9d9d9),
+                                suffix: InkWell(
+                                  onTap: _togglePasswordView,
+                                  child: Icon(
+                                    _isHidden
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color:Colors.black.withOpacity(0.7),
+                                  ),
+                                ),
+
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
+                                )
+                            ),
+                          ),
+                        )
+                      ],
+                    )
+                  ),
+
                 ),
                 const SizedBox(
                   height: 30,
                 ),
                 Center(
-                  child: signInSignUpBtn(context, true, (){
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context)=>const HomeScreen()));
+                  child: processing
+                      ? CircularProgressIndicator()
+                      :signInSignUpBtn(context, true, (){
+                        if(_formKey.currentState!.validate()){
+                          processing=true;
+                          Navigator.pushNamed(context, "/home");
+                        }
                   }),
                 ),
                 const SizedBox(
