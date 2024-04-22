@@ -130,6 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   )
               ),
               Container(
+                //width: MediaQuery.of(context).size.width,
                 padding: const EdgeInsets.symmetric(horizontal: 25,vertical: 25),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.start,

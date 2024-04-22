@@ -1,11 +1,18 @@
-//import 'package:dropdownfield2/dropdownfield2.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/reusable_widgets/reusable_widgets.dart';
+import 'package:tiqiti/screens/book_screen.dart';
 import 'package:tiqiti/screens/profile_screen.dart';
 import 'package:tiqiti/screens/search_screen.dart';
 import 'package:tiqiti/screens/ticket_view.dart';
+import 'dart:async';
+
+
+import '../models/routes.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,53 +22,212 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  //_fromTextController, _toTextController,
- late TextEditingController _dateTextController;
+
+ late TextEditingController _fromTextController, _toTextController,_dateTextController, _saccoTextController;
  bool isRoundTripSelected = false;
  String? _selectedLocation;
  String? _destination;// Variable to hold the selected location
- List<String> locations = [
-   'Nyeri',
-   'Karatina',
-   'Sagana',
-   'Thika',
-   'Juja',
-   'Kenyatta Road',
-   'Kimbo',
-   'Ruiru',
-   'Githurai',
-   'Roysambu',
-   'Olsopps',
-   'Ngara',
-   'Nairobi'
- ];
- /*DateTime? _selectedDate; // Track selected date
+ String? _sacco;// Variable to hold the selected sacco
+ List<String> _locations = [];
+ List<String> _destinations = [];
+ List<String> _saccos = [];
+ final bool _isLoading = false;
+ DateTime? _selectedDate;
 
- Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
-   final DateTime? picked = await showDatePicker(
-     context: context,
-     initialDate: _selectedDate ?? DateTime.now(),
-     firstDate: DateTime.now(),
-     lastDate: DateTime(2101),
-   );
 
-   if (picked != null && picked != _selectedDate) {
-     setState(() {
-       _selectedDate = picked;
-       // Update the controller
-       controller.text = _selectedDate.toString();
-     });
-   }
- }*/
  @override
  void initState(){
    //TODO:implement initState
    super.initState();
-   //_fromTextController=TextEditingController();
-   //_toTextController=TextEditingController();
    _dateTextController=TextEditingController();
+   _fromTextController=TextEditingController();
+   _toTextController=TextEditingController();
+   _saccoTextController=TextEditingController();
+   fetchLocations();
+   fetchDestinations();
+   fetchSaccos();
  }
-  @override
+ Future<void> fetchLocations() async {
+   // Connect to your MySQL database
+   final conn = await MySqlConnection.connect(ConnectionSettings(
+       host:'10.0.2.2',
+       port:3306,
+       user:'root',
+       //password:'',
+       db:'tiketi'
+   ));
+
+   // Execute a query to fetch locations
+   var results = await conn.query('SELECT source FROM routes');
+
+   // Extract locations from the query results
+   List<String> locations = [];
+   for (var row in results) {
+     locations.add(row[0] as String);
+   }
+
+
+
+   // Update state with fetched locations
+   setState(() {
+     _locations = locations;
+   });
+
+   _locations = locations.toSet().toList();
+
+
+   // Close the connection
+   await conn.close();
+ }
+ Future<void> fetchDestinations() async {
+   // Connect to your MySQL database
+   final conn = await MySqlConnection.connect(ConnectionSettings(
+       host:'10.0.2.2',
+       port:3306,
+       user:'root',
+       //password:'',
+       db:'tiketi'
+   ));
+
+   // Execute a query to fetch locations
+   var results = await conn.query('SELECT destination FROM routes');
+
+   // Extract locations from the query results
+   List<String> destinations = [];
+   for (var row in results) {
+     destinations.add(row[0] as String);
+   }
+
+
+   // Update state with fetched locations
+   setState(() {
+     _destinations = destinations;
+   });
+
+   _destinations = destinations.toSet().toList();
+
+   // Close the connection
+   await conn.close();
+ }
+ Future<void> fetchSaccos() async {
+   // Connect to your MySQL database
+   final conn = await MySqlConnection.connect(ConnectionSettings(
+       host:'10.0.2.2',
+       port:3306,
+       user:'root',
+       //password:'',
+       db:'tiketi'
+   ));
+
+   // Execute a query to fetch saccos
+   var results = await conn.query('SELECT routes.*, saccos.saccoName FROM routes JOIN saccos ON routes.saccoID = saccos.saccoID');
+
+   /// Process the results
+   List<String> saccos = [];
+   for (var row in results) {
+       saccos.add(row['saccoName'] as String);
+     }
+     //print('Route ID: ${row['routeID']}, SACCO Name: ${row['saccoName']}');
+
+
+   // Update state with fetched locations
+   setState(() {
+     _saccos = saccos;
+   });
+
+   _saccos = saccos.toSet().toList();
+
+   // Close the connection
+   await conn.close();
+ }
+ Future<List<routes>> searchRoutes(String saccoName, String source, String destination, String travelDate) async {
+   final conn = await MySqlConnection.connect(ConnectionSettings(
+     host: '10.0.2.2',
+     port: 3306,
+     user: 'root',
+     db: 'tiketi',
+   ));
+
+   var results = await conn.query(
+     'SELECT * FROM routes WHERE saccoID = (SELECT saccoID FROM saccos WHERE saccoName = ?) AND source = ? AND destination = ? AND date = ?',
+     [_saccoTextController.text, _fromTextController.text, _toTextController.text, _selectedDate],
+   );
+
+   List<routes> searchResults = [];
+   for (var row in results) {
+     routes route = routes(
+       routeID: row['routeID'],
+       source: row['source'],
+       destination: row['destination'],
+       travelDate: row['date'],
+       returnDate: row['returnDate'],
+       price: row['amount'],
+       saccoName: row['saccoName'],
+     );
+     searchResults.add(route);
+   }
+
+   await conn.close();
+   return searchResults;
+ }
+
+
+ void _searchTrips(BuildContext context) {
+   // Start the async operation
+   searchRoutes(_sacco!, _selectedLocation!, _destination!, _selectedDate!.toString())
+       .then((searchResults) {
+     if (searchResults.isEmpty) {
+       print("failed");
+       // Show error dialog if no results are found
+       showDialog(
+         context: context,
+         builder: (BuildContext context) {
+           return AlertDialog(
+             title: const Text('No Routes Found'),
+             content: const Text('There are no routes available for the selected criteria.'),
+             actions: <Widget>[
+               TextButton(
+                 onPressed: () {
+                   Navigator.of(context).pop(); // Close the dialog
+                 },
+                 child: const Text('OK'),
+               ),
+             ],
+           );
+         },
+       );
+     } else {
+
+       // Navigate to the SearchScreen if results are found
+       Navigator.push(
+         context,
+         MaterialPageRoute(
+           builder: (context) => SearchScreen(route: searchResults),
+         ),
+       );
+       print("success");
+     }
+   });
+ }
+
+
+
+ Future<void> _selectDate(BuildContext context) async {
+   final DateTime? pickedDate = await showDatePicker(
+     context: context,
+     initialDate: DateTime.now(),
+     firstDate: DateTime.now().subtract(const Duration(days: 365)),
+     lastDate: DateTime.now().add(const Duration(days: 365)),
+   );
+   if (pickedDate != null && pickedDate != _selectedDate) {
+     setState(() {
+       _selectedDate = pickedDate;
+     });
+   }
+ }
+
+
+ @override
   Widget build(BuildContext context) {
     Color oneWayTextColor = isRoundTripSelected ? const Color(0xFF9291B1) : Colors.black;
     Color roundTripTextColor = isRoundTripSelected ? Colors.black : const Color(0xFF9291B1);
@@ -145,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 GestureDetector(
                   onTap: (){
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context)=> const SearchScreen()));
+                        MaterialPageRoute(builder: (context)=> const BookingScreen()));
                   },
                   child: const Text(
                     'View all',
@@ -226,6 +392,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: <Widget>[
                             DropdownButtonFormField(
+                              value: _sacco,
+                              decoration: InputDecoration(
+                                  prefixIcon: Icon(
+                                    Icons.place,
+                                    color: Colors.black.withOpacity(0.7),
+                                  ),
+                                  labelText: "Select Sacco",
+                                  labelStyle: TextStyle(color: Colors.black.withOpacity(0.7)),
+                                  filled: true,
+                                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                                  fillColor: const Color(0xffd9d9d9),
+
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                      borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
+                                  )
+                              ),
+                              items: _saccos.map((String sacco) {
+                                return DropdownMenuItem<String>(
+                                  value: sacco,
+                                  child: Text(sacco),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _sacco = newValue;
+                                });
+                              },
+                            ),
+                            const Gap(15),
+                            DropdownButtonFormField(
                               value: _selectedLocation,
                               decoration: InputDecoration(
                                   prefixIcon: Icon(
@@ -243,12 +440,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
                                   )
                               ),
-                              items: locations.map((String location) {
-                                  return DropdownMenuItem<String>(
-                                    value: location,
-                                    child: Text(location),
-                                  );
-                                }).toList(),
+                              items: _locations.map((String location) {
+                                return DropdownMenuItem<String>(
+                                  value: location,
+                                  child: Text(location),
+                                );
+                              }).toList(),
                               onChanged: (String? newValue) {
                                   setState(() {
                                     _selectedLocation = newValue;
@@ -274,10 +471,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderSide: const BorderSide(width: 0,style: BorderStyle.solid)
                                   )
                               ),
-                              items: locations.map((String location) {
+                              items: _destinations.map((String destination) {
                                   return DropdownMenuItem<String>(
-                                    value: location,
-                                    child: Text(location),
+                                    value: destination,
+                                    child: Text(destination),
                                   );
                                 }).toList(),
                               onChanged: (String? newValue) {
@@ -286,11 +483,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                   });
                                 },
                             ),
-                            makeInput(
-                                label: "Travel Date",
-                                icon: Icons.calendar_today_outlined,
-                                controller: _dateTextController,
-                                type: TextInputType.datetime
+                            TextButton(
+                              onPressed: () { _selectDate(context); },
+                              child: makeInput(
+                                  label: _selectedDate == null
+                                      ? 'Select Date'
+                                      : 'Selected Date: ${_selectedDate.toString().substring(0, 10)}',
+                                  icon: Icons.calendar_today_outlined,
+                                  controller: _dateTextController,
+                                  type: TextInputType.datetime
+                              ),
                             ),
                             Visibility(
                                 visible: isRoundTripSelected, // Show only when round trip is selected
@@ -303,7 +505,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         )
                     ),
-                                       // reusableTextField2("Enter Destination", Icons.place, _toTextController),
                     const Gap(10),
                     Center(
                       child: SizedBox(
@@ -311,9 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 50,
                         child: ElevatedButton(
                             onPressed: (){
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context)=>const SearchScreen())
-                              );
+                              _searchTrips;
                               if (kDebugMode) {
                                 print("btn clicked");
                               }
@@ -332,12 +531,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const Gap(15)
-                  ],
-                ),
+                ]
               ),
             ),
-          ),
+          ),),
           const Gap(20),
           Padding(
             padding: const EdgeInsets.only(left: 20,right: 13),
@@ -355,9 +552,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: (){
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context)=> const SearchScreen()));
+                  onTap: () {
+                    const TicketView();
                   },
                   child: const Text(
                     'View all',
@@ -380,11 +576,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 TicketView(),
-                TicketView(),
-                TicketView(),
+
               ],
             ),
           ),
+
+
         ],
       ),
     );

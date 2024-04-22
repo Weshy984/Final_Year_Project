@@ -1,8 +1,8 @@
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:tiqiti/screens/book_screen.dart';
 import 'package:tiqiti/screens/home_screen.dart';
 import 'package:tiqiti/screens/profile_screen.dart';
-import 'package:tiqiti/screens/search_screen.dart';
 import 'package:tiqiti/screens/ticket_screen.dart';
 
 class BottomBar extends StatefulWidget {
@@ -16,7 +16,7 @@ class _BottomBarState extends State<BottomBar> {
   int _selectedIndex=0;
   static final List<Widget>_widgetOptions =<Widget>[
     const HomeScreen(),
-    const SearchScreen(),
+    const BookingScreen(),
     const TicketScreen(),
     const ProfileScreen()
   ];
@@ -46,7 +46,7 @@ class _BottomBarState extends State<BottomBar> {
               label: "home"),
           BottomNavigationBarItem(icon: Icon(FluentSystemIcons.ic_fluent_search_regular),
               activeIcon: Icon(FluentSystemIcons.ic_fluent_search_filled),
-              label: "search"),
+              label: "book"),
           BottomNavigationBarItem(icon: Icon(FluentSystemIcons.ic_fluent_ticket_regular),
               activeIcon: Icon(FluentSystemIcons.ic_fluent_ticket_filled),
               label: "ticket"),

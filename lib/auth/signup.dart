@@ -1,12 +1,12 @@
-//import 'dart:convert';
+
 
 import 'package:flutter/material.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/reusable_widgets/reusable_widgets.dart';
 
-//import 'package:http/http.dart' as http;
-//import 'package:tiqiti/reusable_widgets/toast.dart';
+import 'package:http/http.dart' as http;
+
 
 
 
@@ -105,6 +105,53 @@ class _SignUpScreenState extends State<SignUpScreen>{
   //     });
   //   }
   // }
+  Future signUp ()async{
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+    try{
+      // Check if user with the provided email already exists
+      final results = await conn.query(
+        'SELECT COUNT(*) as count FROM users WHERE email = ?',
+        [_emailTextController.text],
+      );
+
+      final count = results.first['count'] as int;
+
+      if (count > 0) {
+        print('User with email ${_emailTextController.text} already exists');
+        return showToast(message: 'An account exists! Try again later');
+      }
+
+      // Insert the new user if not found
+      final result=await conn.query(
+        'INSERT INTO users (fullname, telephone, city, email, password) VALUES (?, ?, ?, ?, ?)',
+        [
+          _fNameTextController.text,
+          _telephoneTextController.text,
+          _cityTextController.text,
+          _emailTextController.text,
+          _passwordTextController.text,
+        ],
+      );
+
+      if(result.affectedRows!>0){
+        print('User signed up successfully');
+        showToast(message: 'Welcome to tiqiti');
+        return Navigator.pushNamed(context, "/bottomBar");
+      }
+    } catch (error) {
+      print('Failed to sign up user: $error');
+      showToast(message: 'Failed to sign up user: $error');
+    } finally {
+      await conn.close();
+    }
+    }
+
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -213,7 +260,8 @@ class _SignUpScreenState extends State<SignUpScreen>{
                   child: processing ?
                       const CircularProgressIndicator()
                       :signInSignUpBtn(context, false, (){
-                      Navigator.pushNamed(context, "/bottomBar");
+                        signUp();
+                        // Navigator.pushNamed(context, "/bottomBar");
                       }),
                 ),
                 const SizedBox(
