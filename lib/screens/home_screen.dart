@@ -24,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
  late TextEditingController _fromTextController, _toTextController,_dateTextController, _saccoTextController;
+ late final TextEditingController _returnDateTextController = TextEditingController();
  bool isRoundTripSelected = false;
  String? _selectedLocation;
  String? _destination;// Variable to hold the selected location
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
  List<String> _saccos = [];
  final bool _isLoading = false;
  DateTime? _selectedDate;
+ DateTime? _returnDate;
 
 
  @override
@@ -42,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
    _dateTextController=TextEditingController();
    _fromTextController=TextEditingController();
    _toTextController=TextEditingController();
+
    _saccoTextController=TextEditingController();
    fetchLocations();
    fetchDestinations();
@@ -148,9 +151,12 @@ class _HomeScreenState extends State<HomeScreen> {
      db: 'tiketi',
    ));
 
+   // Convert the selectedDate to UTC format
+   DateTime? utcSelectedDate = _selectedDate?.toUtc();
+
    var results = await conn.query(
-     'SELECT * FROM routes WHERE saccoID = (SELECT saccoID FROM saccos WHERE saccoName = ?) AND source = ? AND destination = ? AND date = ?',
-     [_saccoTextController.text, _fromTextController.text, _toTextController.text, _selectedDate],
+     'SELECT * FROM routes WHERE saccoID = (SELECT saccoID FROM saccos WHERE saccoName = ?) AND source = ? AND destination = ? AND travelDate = ?',
+     [_saccoTextController.text, _fromTextController.text, _toTextController.text, utcSelectedDate],
    );
 
    List<routes> searchResults = [];
@@ -173,6 +179,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
  void _searchTrips(BuildContext context) {
+   // Check if any required parameter is null
+   // Check if any required parameter is null
+   if (_sacco == null) {
+     print('Parameter _sacco is null');
+   }
+   if (_selectedLocation == null) {
+     print('Parameter _selectedLocation is null');
+   }
+   if (_destination == null) {
+     print('Parameter _destination is null');
+   }
+   if (_selectedDate == null) {
+     print('Parameter _selectedDate is null');
+     _selectedDate = DateTime.now();
+   }
+
    // Start the async operation
    searchRoutes(_sacco!, _selectedLocation!, _destination!, _selectedDate!.toString())
        .then((searchResults) {
@@ -222,6 +244,20 @@ class _HomeScreenState extends State<HomeScreen> {
    if (pickedDate != null && pickedDate != _selectedDate) {
      setState(() {
        _selectedDate = pickedDate;
+     });
+   }
+ }
+
+ Future<void> _selectReturnDate(BuildContext context) async {
+   final DateTime? pickedDate = await showDatePicker(
+     context: context,
+     initialDate: DateTime.now(),
+     firstDate: DateTime.now().subtract(const Duration(days: 365)),
+     lastDate: DateTime.now().add(const Duration(days: 365)),
+   );
+   if (pickedDate != null && pickedDate != _returnDate) {
+     setState(() {
+       _returnDate = pickedDate;
      });
    }
  }
@@ -495,12 +531,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Visibility(
-                                visible: isRoundTripSelected, // Show only when round trip is selected
+                                visible: isRoundTripSelected,
+                                child: TextButton(
+                                  onPressed: () {
+                                    _selectReturnDate(context); // Call a method to select return date
+                                  },// Show only when round trip is selected
                                 child: makeInput(
-                                  label: "Return Date",
-                                  icon: Icons.add,
-                                  controller: _dateTextController,
-                                  type: TextInputType.datetime
+                                    label: _returnDate == null
+                                        ? 'Select Return Date'
+                                        : 'Return Date: ${_returnDate.toString().substring(0, 10)}',
+                                    icon: Icons.calendar_today_outlined,
+                                    controller: _returnDateTextController,
+                                    type: TextInputType.datetime),
                                 ))
                           ],
                         )
@@ -512,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 50,
                         child: ElevatedButton(
                             onPressed: (){
-                              _searchTrips;
+                              _searchTrips(context);
                               if (kDebugMode) {
                                 print("btn clicked");
                               }
