@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/auth/signup.dart';
+import 'package:tiqiti/screens/bottom_bar.dart';
 
 import '../reusable_widgets/reusable_widgets.dart';
 import '../screens/home_screen.dart';
@@ -28,6 +30,46 @@ class _SignInState extends State<SignIn> {
     setState(() {
       _isHidden = !_isHidden;
     });
+  }
+  void signIn()async{
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+    final results = await conn.query(
+      'SELECT * FROM users WHERE email = ? AND password = ?',
+      [_emailTextController.text, _passwordTextController.text],
+    );
+
+    if (results.isNotEmpty) {
+      // User exists, navigate to the homepage
+      print('User signed up successfully');
+      showToast(message: 'Welcome to tiqiti');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BottomBar()),
+      );
+    } else {
+      // Show error message to the user
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Invalid email or password. Please try again.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    await conn.close();
   }
   @override
   Widget build(BuildContext context) {
@@ -125,7 +167,9 @@ class _SignInState extends State<SignIn> {
                       :signInSignUpBtn(context, true, (){
                         if(_formKey.currentState!.validate()){
                           processing=true;
-                          Navigator.pushNamed(context, "/home");
+                          signIn();
+                          Navigator.pushNamed(context, "/bottomBar");
+                          processing=false;
                         }
                   }),
                 ),

@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
           duration: 1500,
           splashTransition: SplashTransition.scaleTransition,
           backgroundColor: const Color(0xFFF1FAEE),
-          nextScreen: const SignUpScreen()),
+          nextScreen: const SignIn()),
       routes: {
         '/login':(context)=> const SignIn(),
         '/signUp':(context)=> const SignUpScreen(),
