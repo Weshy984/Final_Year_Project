@@ -4,7 +4,6 @@ import 'package:tiqiti/auth/signup.dart';
 import 'package:tiqiti/screens/bottom_bar.dart';
 
 import '../reusable_widgets/reusable_widgets.dart';
-import '../screens/home_screen.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -50,19 +49,19 @@ class _SignInState extends State<SignIn> {
       showToast(message: 'Welcome to tiqiti');
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BottomBar()),
+        MaterialPageRoute(builder: (context) => const BottomBar()),
       );
     } else {
       // Show error message to the user
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Invalid email or password. Please try again.'),
+          title: const Text('Error'),
+          content: const Text('Invalid email or password. Please try again.'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -93,7 +92,7 @@ class _SignInState extends State<SignIn> {
                   height: 20,
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                  padding: const EdgeInsets.only(left: 15.0,right: 15.0),
                   child: Form(
                     key: _formKey,
                     child:Column(
@@ -163,7 +162,7 @@ class _SignInState extends State<SignIn> {
                 ),
                 Center(
                   child: processing
-                      ? CircularProgressIndicator()
+                      ? const CircularProgressIndicator()
                       :signInSignUpBtn(context, true, (){
                         if(_formKey.currentState!.validate()){
                           processing=true;

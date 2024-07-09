@@ -5,7 +5,6 @@ import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/reusable_widgets/reusable_widgets.dart';
 
-import 'package:http/http.dart' as http;
 
 
 

@@ -1,6 +1,11 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mysql1/mysql1.dart';
+
+
+import '../models/buses.dart';
+import '../models/tickets.dart';
 
 
 
@@ -12,8 +17,81 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  late List<Busses> buses;
+  late List<TicketDetails> tickets;
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBusDetails();
+    fetchTicketDetails();// Fetch ticket details when the widget initializes
+  }
+  Future<List<Busses>> fetchBusDetails() async {
+    // Connect to your MySQL database
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+
+    // Execute a query to fetch bus details
+    var results = await conn.query('SELECT * FROM busses');
+
+    // Extract bus details from the query results
+    List<Busses> buses = [];
+    for (var row in results) {
+      buses.add(Busses(
+        busID: row['busID'],
+        sacco: row['sacco'] ?? '', // Handle null
+        busPlate: row['busPlate'] ?? '', // Handle null
+      ));
+    }
+
+    // Close the connection
+    await conn.close();
+
+    return buses;
+  }
+  Future<List<TicketDetails>> fetchTicketDetails() async {
+    // Connect to your MySQL database
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+
+    // Execute a query to fetch ticket details
+    var results = await conn.query('SELECT * FROM tickets');
+
+    // Extract ticket details from the query results
+    List<TicketDetails> tickets = [];
+    for (var row in results){
+      tickets.add(TicketDetails(
+        ticketID: row['ticketID'],
+        source: row['source'] ?? '', // Handle null
+        destination: row['destination'] ?? '', // Handle null
+        date: row['date'] ?? '', // Handle null
+        departureTime: row['departureTime'] ?? '', // Handle null
+        seatno: row['seatno'] ?? '', // Handle null
+        travelTime: row['travelTime'] ?? '', // Handle null
+      ));
+    }
+
+    // Close the connection
+    await conn.close();
+
+    return tickets;
+  }
   @override
   Widget build(BuildContext context) {
+   // String truncatedSource = tickets.source?.substring(0, 3) ?? ''; // Check for null and provide default value
+    //String truncatedDestination = tickets.destination?.substring(0, 3) ?? '';
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
@@ -57,7 +135,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const Gap(30),
           Center(
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.75,
+              //height: MediaQuery.of(context).size.height * 0.75,
               width: MediaQuery.of(context).size.width * 0.85,
               decoration: ShapeDecoration(
                 color: Colors.white,
@@ -85,8 +163,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             Gap(10),
-                            Text(
-                              'KCQ684K',
+                            Text("",
+                             // buses.busPlate,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
@@ -107,36 +185,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             Gap(10),
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'METR',
-                                    style: TextStyle(
-                                      color: Color(0xFFE63946),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'O',
-                                    style: TextStyle(
-                                      color: Color(0xFF3A86FF),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'BUS',
-                                    style: TextStyle(
-                                      color: Color(0xFFE63946),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                            Text("",
+                             // buses.sacco,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w400,
                               ),
-                            )
+                            ),
                           ],
                         )
                       ],
@@ -151,8 +207,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'ELD',
+                            Text("",
+                             // truncatedSource,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
@@ -160,8 +216,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             Gap(10),
-                            Text(
-                              'Eldoret',
+                            Text("",
+                              //tickets.source,
                               style: TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
@@ -220,8 +276,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              'KSM',
+                            Text("",
+                              //truncatedDestination,
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
@@ -229,8 +285,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             Gap(10),
-                            Text(
-                              'Kisumu',
+                            Text("",
+                             // tickets.destination,
                               style: TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
@@ -527,10 +583,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ButtonStyle(
-                        backgroundColor: const MaterialStatePropertyAll<Color>(
+                        backgroundColor: const WidgetStatePropertyAll<Color>(
                             Color(0xFFE63946)),
                         shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                            WidgetStateProperty.all<RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15)))),
                     child: const Row(
@@ -554,10 +610,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ButtonStyle(
-                        backgroundColor: const MaterialStatePropertyAll<Color>(
+                        backgroundColor: const WidgetStatePropertyAll<Color>(
                             Color(0xFFA8DADC)),
                         shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                            WidgetStateProperty.all<RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15)))),
                     child: const Row(

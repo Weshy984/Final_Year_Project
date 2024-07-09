@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mysql1/mysql1.dart';
+import 'package:tiqiti/models/tickets.dart';
 //import 'package:tiqiti/reusable_widgets/thick_container.dart';
 import 'package:tiqiti/reusable_widgets/tickets_tab.dart';
 import 'package:tiqiti/screens/ticket_view.dart';
+
+import '../models/buses.dart';
+import '../models/routes.dart';
 
 class TicketScreen extends StatefulWidget {
   const TicketScreen({super.key});
@@ -12,8 +17,151 @@ class TicketScreen extends StatefulWidget {
 }
 
 class _TicketScreenState extends State<TicketScreen> {
+  List<TicketDetails> tickets = []; // Assume Ticket and Bus are your model classes
+  List<Busses> buses = [];
+  List<String> _locations = [];
+  List<String> _destinations = [];
+  List<String> _saccos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLocations();
+    fetchDestinations();
+    fetchSaccos();
+
+  }
+  Future<void> fetchLocations() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    var results = await conn.query('SELECT source FROM routes');
+
+    List<String> locations = [];
+    for (var row in results) {
+      locations.add(row[0] as String);
+    }
+
+    setState(() {
+      _locations = locations;
+    });
+
+    _locations = locations.toSet().toList();
+
+    await conn.close();
+  }
+
+  Future<void> fetchDestinations() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    var results = await conn.query('SELECT destination FROM routes');
+
+    List<String> destinations = [];
+    for (var row in results) {
+      destinations.add(row[0] as String);
+    }
+
+    setState(() {
+      _destinations = destinations;
+    });
+
+    _destinations = destinations.toSet().toList();
+
+    await conn.close();
+  }
+
+  Future<void> fetchSaccos() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    var results = await conn.query(
+        'SELECT routes.*, saccos.saccoName FROM routes JOIN saccos ON routes.saccoID = saccos.saccoID');
+
+    List<String> saccos = [];
+    for (var row in results) {
+      saccos.add(row['saccoName'] as String);
+    }
+
+    setState(() {
+      _saccos = saccos;
+    });
+
+    _saccos = saccos.toSet().toList();
+
+    await conn.close();
+  }
+  Future<List<Busses>> fetchBusses() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    var results = await conn.query(
+        'SELECT * from buses');
+
+    List<Busses> buses = [];
+    for (var row in results) {
+      Busses bus= Busses(
+        busID: row ['busID'],
+        sacco: row ['sacco'],
+        busPlate: row ['busPlate'],
+      );
+      buses.add(bus);
+    }
+
+    await conn.close();
+    return buses;
+  }
+  Future<List<routes>> searchRoutes() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+
+    var results = await conn.query(
+      'SELECT * FROM routes');
+
+    List<routes> searchResults = [];
+    for (var row in results) {
+      routes route = routes(
+        routeID: row['routeID'],
+        source: row['source'],
+        destination: row['destination'],
+        travelDate: row['date'],
+        returnDate: row['returnDate'],
+        price: row['amount'],
+        saccoID: row['saccoName'],
+      );
+      searchResults.add(route);
+    }
+
+    await conn.close();
+    return searchResults;
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    //String truncatedSource = _locations.source?.substring(0, 3) ?? ''; // Check for null and provide default value
+    //String truncatedDestination = ticket.destination?.substring(0, 3) ?? '';
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(

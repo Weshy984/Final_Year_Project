@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/models/routes.dart';
 import 'package:tiqiti/models/tickets.dart';
 //import 'package:tiqiti/models/tickets.dart';
-import 'package:tiqiti/screens/seat_booking_screen.dart';
 
 //import '../models/trips.dart';
 
 class SearchScreen extends StatelessWidget {
   //List<Trips> trips = [];
   final List<routes> route;
-   const SearchScreen({Key? key, required this.route}) : super(key: key);
+   const SearchScreen({super.key, required this.route});
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class TicketDetails{
   final int ticketID;
@@ -10,4 +9,6 @@ class TicketDetails{
   final String? travelTime;
 
   TicketDetails({required this.ticketID, required this.source, required this.destination, required this.date, required this.departureTime, required this.seatno, this.travelTime});
+
+
 }
