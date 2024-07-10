@@ -10,13 +10,28 @@ import '../models/tickets.dart';
 
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final String selectedSeat;
+  final String amountPaid;
+  final String phoneNumber;
+  final String saccoName;
+  final String source;
+  final String destination;
+  const CheckoutScreen({super.key, required this.selectedSeat, required this.amountPaid, required this.phoneNumber, required this.saccoName, required this.source, required this.destination});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  State<CheckoutScreen> createState(){
+    return _CheckoutScreenState(this.selectedSeat, this.amountPaid, this.phoneNumber, this.saccoName, this.source, this.destination);
+  }
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  String selectedSeat;
+  String amountPaid;
+  String phoneNumber;
+  String saccoName;
+  String source;
+  String destination;
+  _CheckoutScreenState(this.selectedSeat,this.amountPaid,this.phoneNumber,this.saccoName,this.source,this.destination);
   late List<Busses> buses;
   late List<TicketDetails> tickets;
 
@@ -90,8 +105,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
   @override
   Widget build(BuildContext context) {
-   // String truncatedSource = tickets.source?.substring(0, 3) ?? ''; // Check for null and provide default value
-    //String truncatedDestination = tickets.destination?.substring(0, 3) ?? '';
+   String truncatedSource = source.substring(0, 3); // Check for null and provide default value
+   String truncatedDestination = destination.substring(0, 3);
+   String truncatedNumber = phoneNumber.substring(3,6);
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
@@ -146,26 +162,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 children: [
                   const Gap(40),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Bus No',
+                            const Text(
+                              'Amount',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text("",
+                            const Gap(10),
+                            Text("KSH: $amountPaid",
                              // buses.busPlate,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w400,
@@ -176,7 +192,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
+                            const Text(
                               'Bus Name',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -184,10 +200,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text("",
-                             // buses.sacco,
-                              style: TextStyle(
+                            const Gap(10),
+                            Text(saccoName,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w400,
@@ -204,21 +219,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("",
-                             // truncatedSource,
-                              style: TextStyle(
+                            Text(truncatedSource,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text("",
-                              //tickets.source,
-                              style: TextStyle(
+                            const Gap(10),
+                            Text(source,
+                              style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -273,21 +286,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   width: 2.5, color: const Color(0xFFD9D9D9))),
                         ),
                         const Spacer(),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text("",
-                              //truncatedDestination,
-                              style: TextStyle(
+                            Text(truncatedDestination,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text("",
-                             // tickets.destination,
-                              style: TextStyle(
+                            const Gap(10),
+                            Text(destination,
+                              style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -426,15 +437,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                   const Gap(15),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Payment Info.',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -442,15 +453,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
+                            const Gap(10),
                             Row(
                               children: [
-                                Image(
-                                    image:
-                                        AssetImage("assets/images/visa.png")),
+                                const SizedBox(
+                                  width:80,
+                                  height: 40,
+                                  child: Image(
+                                      image:
+                                          AssetImage("assets/images/mpesa.png")),
+                                ),
                                 Text(
-                                  '**75**',
-                                  style: TextStyle(
+                                  truncatedNumber,
+                                  style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 25,
                                     fontWeight: FontWeight.w400,
@@ -463,7 +478,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
+                            const Text(
                               'Seat No.',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -471,10 +486,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
+                            const Gap(10),
                             Text(
-                              '6C',
-                              style: TextStyle(
+                              selectedSeat,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w400,
@@ -575,67 +590,76 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const Gap(30),
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  height: 64,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                        backgroundColor: const WidgetStatePropertyAll<Color>(
-                            Color(0xFFE63946)),
-                        shape:
-                            WidgetStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)))),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.download_rounded),
-                        Gap(10),
-                        Text(
-                          'DOWNLOAD',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 64,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, '/home');
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: const WidgetStatePropertyAll<Color>(
+                              Color(0xFFE63946)),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15)))),
+                      child: const Center(
+                        child: Row(
+                          children: [
+                            Icon(Icons.download_rounded),
+                            Gap(10),
+                            Text(
+                              'DOWNLOAD',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  height: 64,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                        backgroundColor: const WidgetStatePropertyAll<Color>(
-                            Color(0xFFA8DADC)),
-                        shape:
-                            WidgetStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)))),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.ios_share_rounded),
-                        Gap(10),
-                        Text(
-                          'SHARE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                        ]
                   ),
-                ),
-              ],
-            ),
-          )
-        ],
+            )
+
+          //       SizedBox(
+          //         height: 64,
+          //         child: ElevatedButton(
+          //           onPressed: () {},
+          //           style: ButtonStyle(
+          //               backgroundColor: const WidgetStatePropertyAll<Color>(
+          //                   Color(0xFFA8DADC)),
+          //               shape:
+          //                   WidgetStateProperty.all<RoundedRectangleBorder>(
+          //                       RoundedRectangleBorder(
+          //                           borderRadius: BorderRadius.circular(15)))),
+          //           child: const Row(
+          //             children: [
+          //               Icon(Icons.ios_share_rounded),
+          //               Gap(10),
+          //               Text(
+          //                 'SHARE',
+          //                 style: TextStyle(
+          //                   color: Colors.white,
+          //                   fontSize: 22,
+          //                   fontWeight: FontWeight.w700,
+          //                 ),
+          //               ),
+          //             ],
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // )
+          )],
       ),
     );
   }

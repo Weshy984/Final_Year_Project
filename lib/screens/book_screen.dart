@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:intl/intl.dart';
+//import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/screens/seat_booking_screen.dart';
 
@@ -389,12 +389,12 @@ class BookingScreen extends StatelessWidget {
     );
   }
   Widget centerCard(TicketDetails ticket){
-    String travelTime = ticket.travelTime != null
-        ? DateFormat('HH:mm').format(ticket.travelTime! as DateTime)
-        : 'N/A';
-    String departureTime = ticket.departureTime != null
-        ? DateFormat('HH:mm').format(ticket.departureTime as DateTime)
-        : 'N/A';
+    // String travelTime = ticket.travelTime != null
+    //     ? DateFormat('HH:mm').format(ticket.travelTime! as DateTime)
+    //     : 'N/A';
+    // String departureTime = ticket.departureTime != null
+    //     ? DateFormat('HH:mm').format(ticket.departureTime as DateTime)
+    //     : 'N/A';
     return ListView.builder(
       itemCount: route.length,
       itemBuilder: (context, index) {

@@ -163,10 +163,30 @@ class _SeatBookingState extends State<SeatBooking> {
                     await saveTransactionToDatabase(phoneNumber, amount);
 
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment initiated successfully')));
-                    Future.delayed(const Duration(seconds: 2), () {
-                      Navigator.of(context).pop(); // Close the payment dialog
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CheckoutScreen()));
+
+                    Future.delayed(const Duration(seconds: 3), () {
+                      //Navigator.of(context).pop();
+                      String? seat = selectedSeatText;
+                      String? amountPaid = amount;
+                      String? phone = phoneNumber;
+                      String? saccoN = saccoName;
+                      String? start = source;
+                      String? end = destination;
+                      // Use a GlobalKey to access the navigator state
+                      GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+                      navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) =>
+                          CheckoutScreen(
+                            selectedSeat: seat,
+                            amountPaid: amountPaid,
+                            phoneNumber: phone,
+                            saccoName: saccoN,
+                            source: start,
+                            destination: end,
+                          ),
+                      ));
                     });
+
+
 
 
 
@@ -243,6 +263,7 @@ class _SeatBookingState extends State<SeatBooking> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
         children: [
@@ -665,6 +686,9 @@ class _SeatBookingState extends State<SeatBooking> {
                       onPressed:(){
                         print("transaction started");
                         _showPaymentDialog(context);
+                        // Future.delayed(const Duration(seconds: 5), () {
+                        //   Navigator.of(context).pop();
+                        // });
 
 
 

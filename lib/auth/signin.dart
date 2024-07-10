@@ -4,6 +4,7 @@ import 'package:tiqiti/auth/signup.dart';
 import 'package:tiqiti/screens/bottom_bar.dart';
 
 import '../reusable_widgets/reusable_widgets.dart';
+import '../screens/admin_dash.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -44,13 +45,24 @@ class _SignInState extends State<SignIn> {
     );
 
     if (results.isNotEmpty) {
-      // User exists, navigate to the homepage
-      print('User signed up successfully');
-      showToast(message: 'Welcome to tiqiti');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomBar()),
-      );
+      // User exists
+      if (_emailTextController.text == 'admin.abcd.co.ke') {
+        // Navigate to the admin dashboard
+        print('Admin signed in successfully');
+        showToast(message: 'Welcome Admin');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDash()),
+        );
+      } else {
+        // Navigate to the homepage
+        print('User signed in successfully');
+        showToast(message: 'Welcome to tiqiti');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const BottomBar()),
+        );
+      }
     } else {
       // Show error message to the user
       showDialog(
