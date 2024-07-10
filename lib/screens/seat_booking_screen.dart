@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:tiqiti/services/mpesa_service.dart';
@@ -10,19 +10,15 @@ class SeatBooking extends StatefulWidget {
   final String source;
   final String destination;
   final String saccoName;
-  const SeatBooking({super.key, required this.source, required this.destination, required this.saccoName});
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  SeatBooking({super.key, required this.source, required this.destination, required this.saccoName});
 
   @override
-  State<SeatBooking> createState() {
-    return _SeatBookingState( this.source,this.destination,this.saccoName);
-  }
+  State<SeatBooking> createState() => _SeatBookingState();
 }
 
 class _SeatBookingState extends State<SeatBooking> {
-  String source;
-  String destination;
-  String saccoName;
-  _SeatBookingState(this.source,this.destination,this.saccoName);
+
   List<String> selectedSeats = [];
   String selectedSeatText = ''; // To store selected seats
   Set<String> bookedSeats = {};// To store booked seats from the database
@@ -158,38 +154,39 @@ class _SeatBookingState extends State<SeatBooking> {
 
                   try {
                     await mpesaService.lipaNaMpesaOnline(phoneNumber, amount);
-                    Navigator.of(context).pop(); // Close loading indicator
+                    //Navigator.of(context).pop(); // Close loading indicator
                     // Save transaction details to MySQL database
                     await saveTransactionToDatabase(phoneNumber, amount);
-
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment initiated successfully')));
+                    try{
+                      Future.delayed(const Duration(seconds: 3), () {
+                        //Navigator.of(context).pop();
+                        String? seat = selectedSeatText;
+                        String? amountPaid = amount;
+                        String? phone = phoneNumber;
+                        String? saccoN = widget.saccoName;
+                        String? start = widget. source;
+                        String? end = widget.destination;
 
-                    Future.delayed(const Duration(seconds: 3), () {
-                      //Navigator.of(context).pop();
-                      String? seat = selectedSeatText;
-                      String? amountPaid = amount;
-                      String? phone = phoneNumber;
-                      String? saccoN = saccoName;
-                      String? start = source;
-                      String? end = destination;
-                      // Use a GlobalKey to access the navigator state
-                      GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-                      navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) =>
-                          CheckoutScreen(
-                            selectedSeat: seat,
-                            amountPaid: amountPaid,
-                            phoneNumber: phone,
-                            saccoName: saccoN,
-                            source: start,
-                            destination: end,
-                          ),
-                      ));
-                    });
+                        print('Attempting to navigate to CheckoutScreen');
+                        // Navigate using the context passed to showDialog
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                            CheckoutScreen(
+                              selectedSeat: seat,
+                              amountPaid: amountPaid,
+                              phoneNumber: phone,
+                              saccoName: saccoN,
+                              source: start,
+                              destination: end,
+                            ),
+                        ));
+                        print('navigated to CheckoutScreen');
 
+                      });
 
-
-
-
+                    }catch(e){
+                      print('Error navigating to CheckoutScreen: $e');
+                    }
                     // Check if transaction was successfully saved
                     // bool transactionSaved = await checkTransactionSaved(phoneNumber, amount);
                     // print(phoneNumber);
@@ -284,7 +281,7 @@ class _SeatBookingState extends State<SeatBooking> {
                       const Gap(80),
                       Center(
                         child: Text(
-                          saccoName ?? '',
+                          widget.saccoName,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 28,
@@ -312,7 +309,7 @@ class _SeatBookingState extends State<SeatBooking> {
                               ),
                             ),
                             Text(
-                              source ?? '',
+                              widget.source,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -387,7 +384,7 @@ class _SeatBookingState extends State<SeatBooking> {
                               ),
                             ),
                             Text(
-                              destination ?? '',
+                              widget.destination,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,

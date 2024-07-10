@@ -19,19 +19,10 @@ class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key, required this.selectedSeat, required this.amountPaid, required this.phoneNumber, required this.saccoName, required this.source, required this.destination});
 
   @override
-  State<CheckoutScreen> createState(){
-    return _CheckoutScreenState(this.selectedSeat, this.amountPaid, this.phoneNumber, this.saccoName, this.source, this.destination);
-  }
+  State<CheckoutScreen> createState()=>_CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String selectedSeat;
-  String amountPaid;
-  String phoneNumber;
-  String saccoName;
-  String source;
-  String destination;
-  _CheckoutScreenState(this.selectedSeat,this.amountPaid,this.phoneNumber,this.saccoName,this.source,this.destination);
   late List<Busses> buses;
   late List<TicketDetails> tickets;
 
@@ -103,11 +94,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return tickets;
   }
+
   @override
   Widget build(BuildContext context) {
-   String truncatedSource = source.substring(0, 3); // Check for null and provide default value
-   String truncatedDestination = destination.substring(0, 3);
-   String truncatedNumber = phoneNumber.substring(3,6);
+   String truncatedSource =widget.source.substring(0, 3); // Check for null and provide default value
+   String truncatedDestination = widget.destination.substring(0, 3);
+   String truncatedNumber = widget.phoneNumber.substring(3,6);
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
@@ -179,7 +171,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             const Gap(10),
-                            Text("KSH: $amountPaid",
+                            Text('ksh:${widget.amountPaid}',
                              // buses.busPlate,
                               style: const TextStyle(
                                 color: Colors.black,
@@ -201,7 +193,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             const Gap(10),
-                            Text(saccoName,
+                            Text(widget.saccoName,
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
@@ -230,7 +222,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             const Gap(10),
-                            Text(source,
+                            Text(widget.source,
                               style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
@@ -297,7 +289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             const Gap(10),
-                            Text(destination,
+                            Text(widget.destination,
                               style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
@@ -488,7 +480,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             const Gap(10),
                             Text(
-                              selectedSeat,
+                              widget.selectedSeat,
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
@@ -588,79 +580,69 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const Gap(30),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    height: 64,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.popAndPushNamed(context, '/home');
-                      },
-                      style: ButtonStyle(
-                          backgroundColor: const WidgetStatePropertyAll<Color>(
-                              Color(0xFFE63946)),
-                          shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15)))),
-                      child: const Center(
-                        child: Row(
-                          children: [
-                            Icon(Icons.download_rounded),
-                            Gap(10),
-                            Text(
-                              'DOWNLOAD',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+          Center(child: SizedBox(
+              width: MediaQuery.of(context).size.width*0.5,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: () {
+                  _insertBookingDetails();
+                  Navigator.popAndPushNamed(context, '/home');
+                },
+                style: ButtonStyle(
+                    backgroundColor: const WidgetStatePropertyAll<Color>(
+                        Color(0xFFE63946)),
+                    shape:
+                    WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)))),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.download_rounded),
+                      Gap(10),
+                      Text(
+                        'EXIT', textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                        ]
-                  ),
-            )
-
-          //       SizedBox(
-          //         height: 64,
-          //         child: ElevatedButton(
-          //           onPressed: () {},
-          //           style: ButtonStyle(
-          //               backgroundColor: const WidgetStatePropertyAll<Color>(
-          //                   Color(0xFFA8DADC)),
-          //               shape:
-          //                   WidgetStateProperty.all<RoundedRectangleBorder>(
-          //                       RoundedRectangleBorder(
-          //                           borderRadius: BorderRadius.circular(15)))),
-          //           child: const Row(
-          //             children: [
-          //               Icon(Icons.ios_share_rounded),
-          //               Gap(10),
-          //               Text(
-          //                 'SHARE',
-          //                 style: TextStyle(
-          //                   color: Colors.white,
-          //                   fontSize: 22,
-          //                   fontWeight: FontWeight.w700,
-          //                 ),
-          //               ),
-          //             ],
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // )
-          )],
+                ),
+              ),
+            )),
+          const Gap(20)
+        ],
       ),
+      
     );
+  }
+  Future<void> _insertBookingDetails() async{
+    // Connect to your MySQL database
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+    // Execute a query to insert details
+    try {
+      await conn.query(
+          'INSERT INTO bookings (seatID, amount, phone)VALUES (?, ?, ?, ?, ?, ?)',
+          [
+            widget.selectedSeat,
+            widget.amountPaid,
+            widget.phoneNumber,
+          ]);
+      print('details inserted');
+    }catch (e){
+      print('Error inserting booking details: $e');
+    }finally{
+      await conn.close();
+    }
   }
 }

@@ -356,7 +356,7 @@ class BookingScreen extends StatelessWidget {
                     child: ElevatedButton(
                         onPressed: (){
                           Navigator.push(context,
-                              MaterialPageRoute(builder: (context)=> const SeatBooking(source: '', destination: '', saccoName: '',))
+                              MaterialPageRoute(builder: (context)=> SeatBooking(source: '', destination: '', saccoName: '',))
                           );
                         },
                         style: ButtonStyle(
@@ -580,7 +580,7 @@ class BookingScreen extends StatelessWidget {
                           child: ElevatedButton(
                               onPressed: (){
                                 Navigator.push(context,
-                                    MaterialPageRoute(builder: (context)=> const SeatBooking(source: '', destination: '', saccoName: '',))
+                                    MaterialPageRoute(builder: (context)=> SeatBooking(source: '', destination: '', saccoName: '',))
                                 );
                               },
                               style: ButtonStyle(
