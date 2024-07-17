@@ -12,7 +12,7 @@ class MpesaService {
  final String oauthTokenUrl = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
 
  Future<String> _getAccessToken() async {
-  String credentials = "TzhBQ25DYzJOUHBrWjN1UWxNWTVqaUFEVk05TUJpQ1RDeVIxamg4dVFJMk54R0NwOjRKWVE2U3BsYktreWtDNWszUVdab25lcEh4a0djSTJjeHpoVUdjM1RhSDFOUmpSR3hoRFJERHo4U0p2UDlaejk";
+  String credentials = CREDENTIALS;
   var response = await http.get(
    Uri.parse(oauthTokenUrl),
    headers: {
