@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/models/routes.dart';
 import 'package:tiqiti/screens/book_screen.dart';
@@ -120,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await conn.close();
   }
 
-  Future<List<routes>> searchRoutes(String saccoName, String source, String destination) async {
+  Future<List<routes>> searchRoutes(String saccoName, String source, String destination, String formattedDate) async {
     final conn = await MySqlConnection.connect(ConnectionSettings(
       host: '10.0.2.2',
       port: 3306,
@@ -128,17 +129,17 @@ class _HomeScreenState extends State<HomeScreen> {
       db: 'tiketi',
     ));
 
-    //DateTime? utcSelectedDate = _selectedDate?.toUtc();
-   // String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+   // DateTime? utcSelectedDate = _selectedDate?.toUtc();
+   String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
     print('Executing query with parameters:');
     print('Sacco Name: $saccoName');
     print('Source: $source');
     print('Destination: $destination');
-    //print('Travel Date: $formattedDate');
+    print('Travel Date: $formattedDate');
 
     var results = await conn.query(
-      'SELECT * FROM routes WHERE saccoID = (SELECT saccoID FROM saccos WHERE saccoName = ?) AND source = ? AND destination = ?',
-      [saccoName, source, destination],
+      'SELECT * FROM routes WHERE saccoID = (SELECT saccoID FROM saccos WHERE saccoName = ?) AND source = ? AND destination = ? AND travelDate = ?',
+      [saccoName, source, destination,formattedDate],
     );
 
     List<routes> searchResults = [];
@@ -169,9 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _searchTrips(BuildContext context) {
-    if (_sacco == null || _selectedLocation == null || _destination == null
-        //|| _selectedDate == null
-    ) {
+    if (_sacco == null || _selectedLocation == null || _destination == null || _selectedDate == null) {
       print('One or more parameters are null');
       return;
     }
@@ -179,12 +178,11 @@ class _HomeScreenState extends State<HomeScreen> {
     print('Sacco: $_sacco');
     print('Source: $_selectedLocation');
     print('Destination: $_destination');
-    //print('Date: $_selectedDate');
-    //String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-    //print('formattedDate: $formattedDate');
+    print('Date: $_selectedDate');
+    String formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+    print('formattedDate: $formattedDate');
 
-    searchRoutes(_sacco!, _selectedLocation!, _destination!
-        //formattedDate
+    searchRoutes(_sacco!, _selectedLocation!, _destination!, formattedDate
         ).then((searchResults) {
       if (searchResults.isEmpty) {
         print("No Routes Found");
@@ -209,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _sacco = null;
           _selectedLocation = null;
           _destination = null;
-          //_selectedDate = null;
+          _selectedDate = null;
           //_returnDate = null;
         });
       } else {
@@ -230,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _sacco = null;
           _selectedLocation = null;
           _destination = null;
-          //_selectedDate = null;
+          _selectedDate = null;
           //_returnDate = null;
         });
       }
@@ -507,16 +505,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                             },
                           ),
-                          // TextButton(
-                          //   onPressed: () {
-                          //     _selectDate(context);
-                          //   },
-                          //   child: Text(
-                          //     _selectedDate == null
-                          //         ? 'Select Date'
-                          //         : 'Selected Date: ${_selectedDate.toString().substring(0, 10)}',
-                          //   ),
-                          // ),
+                          TextButton(
+                            onPressed: () {
+                              _selectDate(context);
+                            },
+                            child: Text(
+                              _selectedDate == null
+                                  ? 'Select Date'
+                                  : 'Selected Date: ${_selectedDate.toString().substring(0, 10)}',
+                            ),
+                          ),
                           Visibility(
                             visible: isRoundTripSelected,
                             child: TextButton(

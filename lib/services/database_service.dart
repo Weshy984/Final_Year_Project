@@ -50,6 +50,9 @@ class DatabaseService {
           departureTime: row['departureTime'],
           seatno: row['seatno'],
           travelTime: row['travelTime'],
+          amount: row['amount'],
+          phoneNumber: row['phoneNumber'],
+          saccoName: row['saccoName'],
         );
       }).toList();
       return tickets;

@@ -46,7 +46,7 @@ class _SignInState extends State<SignIn> {
 
     if (results.isNotEmpty) {
       // User exists
-      if (_emailTextController.text == 'admin.abcd.co.ke') {
+      if (_emailTextController.text == 'admin@abcd.co.ke') {
         // Navigate to the admin dashboard
         print('Admin signed in successfully');
         showToast(message: 'Welcome Admin');
@@ -81,6 +81,20 @@ class _SignInState extends State<SignIn> {
     }
 
     await conn.close();
+  }
+  void signOut() {
+    // Clear the text fields
+    _emailTextController.clear();
+    _passwordTextController.clear();
+
+    // Show sign out message
+    showToast(message: 'You have been signed out');
+
+    // Navigate to the sign-in screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignUpScreen()),
+    );
   }
   @override
   Widget build(BuildContext context) {

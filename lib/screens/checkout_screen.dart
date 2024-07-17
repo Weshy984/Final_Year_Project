@@ -32,7 +32,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     fetchBusDetails();
-    fetchTicketDetails();// Fetch ticket details when the widget initializes
+    //fetchTicketDetails();// Fetch ticket details when the widget initializes
   }
   Future<List<Busses>> fetchBusDetails() async {
     // Connect to your MySQL database
@@ -62,38 +62,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return buses;
   }
-  Future<List<TicketDetails>> fetchTicketDetails() async {
-    // Connect to your MySQL database
-    final conn = await MySqlConnection.connect(ConnectionSettings(
-        host:'10.0.2.2',
-        port:3306,
-        user:'root',
-        //password:'',
-        db:'tiketi'
-    ));
-
-    // Execute a query to fetch ticket details
-    var results = await conn.query('SELECT * FROM tickets');
-
-    // Extract ticket details from the query results
-    List<TicketDetails> tickets = [];
-    for (var row in results){
-      tickets.add(TicketDetails(
-        ticketID: row['ticketID'],
-        source: row['source'] ?? '', // Handle null
-        destination: row['destination'] ?? '', // Handle null
-        date: row['date'] ?? '', // Handle null
-        departureTime: row['departureTime'] ?? '', // Handle null
-        seatno: row['seatno'] ?? '', // Handle null
-        travelTime: row['travelTime'] ?? '', // Handle null
-      ));
-    }
-
-    // Close the connection
-    await conn.close();
-
-    return tickets;
-  }
+  // Future<List<TicketDetails>> fetchTicketDetails() async {
+  //   // Connect to your MySQL database
+  //   final conn = await MySqlConnection.connect(ConnectionSettings(
+  //       host:'10.0.2.2',
+  //       port:3306,
+  //       user:'root',
+  //       //password:'',
+  //       db:'tiketi'
+  //   ));
+  //
+  //   // Execute a query to fetch ticket details
+  //   var results = await conn.query('SELECT * FROM tickets');
+  //
+  //   // Extract ticket details from the query results
+  //   List<TicketDetails> tickets = [];
+  //   for (var row in results){
+  //     tickets.add(TicketDetails(
+  //       ticketID: row['ticketID'],
+  //       source: row['source'] ?? '', // Handle null
+  //       destination: row['destination'] ?? '', // Handle null
+  //       date: row['date'] ?? '', // Handle null
+  //       departureTime: row['departureTime'] ?? '', // Handle null
+  //       seatno: row['seatno'] ?? '', // Handle null
+  //       travelTime: row['travelTime'] ?? '',
+  //       amount: row['amount']?? '',
+  //       phoneNumber:row['phoneNumber']?? '',
+  //       saccoName:row['saccoName']?? ''// Handle null
+  //     ));
+  //   }
+  //
+  //   // Close the connection
+  //   await conn.close();
+  //
+  //   return tickets;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -620,28 +623,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       
     );
   }
-  Future<void> _insertBookingDetails() async{
-    // Connect to your MySQL database
+  Future<void> _insertBookingDetails() async {
     final conn = await MySqlConnection.connect(ConnectionSettings(
-        host:'10.0.2.2',
-        port:3306,
-        user:'root',
-        //password:'',
-        db:'tiketi'
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      // password: '',
+      db: 'tiketi',
     ));
-    // Execute a query to insert details
+
     try {
+      // Insert the booking details into the `tickets` table
       await conn.query(
-          'INSERT INTO bookings (seatID, amount, phone)VALUES (?, ?, ?, ?, ?, ?)',
-          [
-            widget.selectedSeat,
-            widget.amountPaid,
-            widget.phoneNumber,
-          ]);
-      print('details inserted');
-    }catch (e){
+        'INSERT INTO tickets (source, destination, date, seatno, travelTime, amount, phoneNumber, saccoName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          widget.source,
+          widget.destination,
+          DateTime.now().toString(),
+          widget.selectedSeat,
+          DateTime.now().toString(),
+          widget.amountPaid,
+          widget.phoneNumber,
+          widget.saccoName,
+        ],
+      );
+    } catch (e) {
       print('Error inserting booking details: $e');
-    }finally{
+    } finally {
       await conn.close();
     }
   }

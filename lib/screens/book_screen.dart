@@ -642,7 +642,10 @@ Future<TicketDetails?> fetchTicketDetails(routes route) async {
       date: row['date'],
       departureTime: row['departureTime'],
       seatno: row['seatno'],
-      travelTime: row['travelTime'] != null ? row['travel_time_minutes'] : null, // Handle nullable property
+      travelTime: row['travelTime'] != null ? row['travel_time_minutes'] : null,
+      amount: row['amount'],
+      phoneNumber: row['phoneNumber'],
+      saccoName: row['saccoName'],
     );
   } else {
     return null;

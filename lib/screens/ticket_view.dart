@@ -81,7 +81,10 @@ class _TicketViewState extends State<TicketView> {
         date: row['date'] ?? '', // Handle null
         departureTime: row['departureTime'] ?? '', // Handle null
         seatno: row['seatno'] ?? '', // Handle null
-        travelTime: row['travelTime'] ?? '', // Handle null
+        travelTime: row['travelTime'] ?? '',
+        amount: row['amount'] ?? '',
+        phoneNumber: row['phoneNumber']?? '',
+        saccoName: row['saccoName']?? '',// Handle null
       ));
     }
 
