@@ -1,19 +1,108 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mysql1/mysql1.dart';
+
+
+import '../models/buses.dart';
+import '../models/tickets.dart';
 
 
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final String selectedSeat;
+  final String amountPaid;
+  final String phoneNumber;
+  final String saccoName;
+  final String source;
+  final String destination;
+  const CheckoutScreen({super.key, required this.selectedSeat, required this.amountPaid, required this.phoneNumber, required this.saccoName, required this.source, required this.destination});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  State<CheckoutScreen> createState()=>_CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  late List<Busses> buses;
+  late List<TicketDetails> tickets;
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBusDetails();
+    //fetchTicketDetails();// Fetch ticket details when the widget initializes
+  }
+  Future<List<Busses>> fetchBusDetails() async {
+    // Connect to your MySQL database
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host:'10.0.2.2',
+        port:3306,
+        user:'root',
+        //password:'',
+        db:'tiketi'
+    ));
+
+    // Execute a query to fetch bus details
+    var results = await conn.query('SELECT * FROM busses');
+
+    // Extract bus details from the query results
+    List<Busses> buses = [];
+    for (var row in results) {
+      buses.add(Busses(
+        busID: row['busID'],
+        sacco: row['sacco'] ?? '', // Handle null
+        busPlate: row['busPlate'] ?? '', // Handle null
+      ));
+    }
+
+    // Close the connection
+    await conn.close();
+
+    return buses;
+  }
+  // Future<List<TicketDetails>> fetchTicketDetails() async {
+  //   // Connect to your MySQL database
+  //   final conn = await MySqlConnection.connect(ConnectionSettings(
+  //       host:'10.0.2.2',
+  //       port:3306,
+  //       user:'root',
+  //       //password:'',
+  //       db:'tiketi'
+  //   ));
+  //
+  //   // Execute a query to fetch ticket details
+  //   var results = await conn.query('SELECT * FROM tickets');
+  //
+  //   // Extract ticket details from the query results
+  //   List<TicketDetails> tickets = [];
+  //   for (var row in results){
+  //     tickets.add(TicketDetails(
+  //       ticketID: row['ticketID'],
+  //       source: row['source'] ?? '', // Handle null
+  //       destination: row['destination'] ?? '', // Handle null
+  //       date: row['date'] ?? '', // Handle null
+  //       departureTime: row['departureTime'] ?? '', // Handle null
+  //       seatno: row['seatno'] ?? '', // Handle null
+  //       travelTime: row['travelTime'] ?? '',
+  //       amount: row['amount']?? '',
+  //       phoneNumber:row['phoneNumber']?? '',
+  //       saccoName:row['saccoName']?? ''// Handle null
+  //     ));
+  //   }
+  //
+  //   // Close the connection
+  //   await conn.close();
+  //
+  //   return tickets;
+  // }
+
   @override
   Widget build(BuildContext context) {
+   String truncatedSource =widget.source.substring(0, 3); // Check for null and provide default value
+   String truncatedDestination = widget.destination.substring(0, 3);
+   String truncatedNumber = widget.phoneNumber.substring(3,6);
     return Scaffold(
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
@@ -57,7 +146,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const Gap(30),
           Center(
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.75,
+              //height: MediaQuery.of(context).size.height * 0.75,
               width: MediaQuery.of(context).size.width * 0.85,
               decoration: ShapeDecoration(
                 color: Colors.white,
@@ -68,26 +157,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 children: [
                   const Gap(40),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Bus No',
+                            const Text(
+                              'Amount',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text(
-                              'KCQ684K',
-                              style: TextStyle(
+                            const Gap(10),
+                            Text('ksh:${widget.amountPaid}',
+                             // buses.busPlate,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w400,
@@ -98,7 +187,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
+                            const Text(
                               'Bus Name',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -106,37 +195,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'METR',
-                                    style: TextStyle(
-                                      color: Color(0xFFE63946),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'O',
-                                    style: TextStyle(
-                                      color: Color(0xFF3A86FF),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'BUS',
-                                    style: TextStyle(
-                                      color: Color(0xFFE63946),
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                            const Gap(10),
+                            Text(widget.saccoName,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w400,
                               ),
-                            )
+                            ),
                           ],
                         )
                       ],
@@ -148,21 +214,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'ELD',
-                              style: TextStyle(
+                            Text(truncatedSource,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text(
-                              'Eldoret',
-                              style: TextStyle(
+                            const Gap(10),
+                            Text(widget.source,
+                              style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -217,21 +281,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   width: 2.5, color: const Color(0xFFD9D9D9))),
                         ),
                         const Spacer(),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              'KSM',
-                              style: TextStyle(
+                            Text(truncatedDestination,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 30,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
-                            Text(
-                              'Kisumu',
-                              style: TextStyle(
+                            const Gap(10),
+                            Text(widget.destination,
+                              style: const TextStyle(
                                 color: Color(0xDDD9D9D9),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -370,15 +432,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                   const Gap(15),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Payment Info.',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -386,15 +448,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
+                            const Gap(10),
                             Row(
                               children: [
-                                Image(
-                                    image:
-                                        AssetImage("assets/images/visa.png")),
+                                const SizedBox(
+                                  width:80,
+                                  height: 40,
+                                  child: Image(
+                                      image:
+                                          AssetImage("assets/images/mpesa.png")),
+                                ),
                                 Text(
-                                  '**75**',
-                                  style: TextStyle(
+                                  truncatedNumber,
+                                  style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 25,
                                     fontWeight: FontWeight.w400,
@@ -407,7 +473,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
+                            const Text(
                               'Seat No.',
                               style: TextStyle(
                                 color: Color(0xFFD9D9D9),
@@ -415,10 +481,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            Gap(10),
+                            const Gap(10),
                             Text(
-                              '6C',
-                              style: TextStyle(
+                              widget.selectedSeat,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w400,
@@ -517,70 +583,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const Gap(30),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  height: 64,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                        backgroundColor: const MaterialStatePropertyAll<Color>(
-                            Color(0xFFE63946)),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)))),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.download_rounded),
-                        Gap(10),
-                        Text(
-                          'DOWNLOAD',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
+          Center(child: SizedBox(
+              width: MediaQuery.of(context).size.width*0.5,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: () {
+                  _insertBookingDetails();
+                  Navigator.popAndPushNamed(context, '/home');
+                },
+                style: ButtonStyle(
+                    backgroundColor: const WidgetStatePropertyAll<Color>(
+                        Color(0xFFE63946)),
+                    shape:
+                    WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)))),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.download_rounded),
+                      Gap(10),
+                      Text(
+                        'EXIT', textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(
-                  height: 64,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                        backgroundColor: const MaterialStatePropertyAll<Color>(
-                            Color(0xFFA8DADC)),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)))),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.ios_share_rounded),
-                        Gap(10),
-                        Text(
-                          'SHARE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
+              ),
+            )),
+          const Gap(20)
         ],
       ),
+      
     );
+  }
+  Future<void> _insertBookingDetails() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      // password: '',
+      db: 'tiketi',
+    ));
+
+    try {
+      // Insert the booking details into the `tickets` table
+      await conn.query(
+        'INSERT INTO tickets (source, destination, date, seatno, travelTime, amount, phoneNumber, saccoName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          widget.source,
+          widget.destination,
+          DateTime.now().toString(),
+          widget.selectedSeat,
+          DateTime.now().toString(),
+          widget.amountPaid,
+          widget.phoneNumber,
+          widget.saccoName,
+        ],
+      );
+    } catch (e) {
+      print('Error inserting booking details: $e');
+    } finally {
+      await conn.close();
+    }
   }
 }

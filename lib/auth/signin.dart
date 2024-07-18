@@ -4,7 +4,7 @@ import 'package:tiqiti/auth/signup.dart';
 import 'package:tiqiti/screens/bottom_bar.dart';
 
 import '../reusable_widgets/reusable_widgets.dart';
-import '../screens/home_screen.dart';
+import '../screens/admin_dash.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -45,24 +45,35 @@ class _SignInState extends State<SignIn> {
     );
 
     if (results.isNotEmpty) {
-      // User exists, navigate to the homepage
-      print('User signed up successfully');
-      showToast(message: 'Welcome to tiqiti');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => BottomBar()),
-      );
+      // User exists
+      if (_emailTextController.text == 'admin@abcd.co.ke') {
+        // Navigate to the admin dashboard
+        print('Admin signed in successfully');
+        showToast(message: 'Welcome Admin');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDash()),
+        );
+      } else {
+        // Navigate to the homepage
+        print('User signed in successfully');
+        showToast(message: 'Welcome to tiqiti');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const BottomBar()),
+        );
+      }
     } else {
       // Show error message to the user
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Invalid email or password. Please try again.'),
+          title: const Text('Error'),
+          content: const Text('Invalid email or password. Please try again.'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -70,6 +81,20 @@ class _SignInState extends State<SignIn> {
     }
 
     await conn.close();
+  }
+  void signOut() {
+    // Clear the text fields
+    _emailTextController.clear();
+    _passwordTextController.clear();
+
+    // Show sign out message
+    showToast(message: 'You have been signed out');
+
+    // Navigate to the sign-in screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignUpScreen()),
+    );
   }
   @override
   Widget build(BuildContext context) {
@@ -93,7 +118,7 @@ class _SignInState extends State<SignIn> {
                   height: 20,
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                  padding: const EdgeInsets.only(left: 15.0,right: 15.0),
                   child: Form(
                     key: _formKey,
                     child:Column(
@@ -163,7 +188,7 @@ class _SignInState extends State<SignIn> {
                 ),
                 Center(
                   child: processing
-                      ? CircularProgressIndicator()
+                      ? const CircularProgressIndicator()
                       :signInSignUpBtn(context, true, (){
                         if(_formKey.currentState!.validate()){
                           processing=true;

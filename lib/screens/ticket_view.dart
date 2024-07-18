@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:tiqiti/reusable_widgets/thick_container.dart';
-import 'package:intl/intl.dart';
 
 import '../models/tickets.dart';
 
@@ -82,7 +81,10 @@ class _TicketViewState extends State<TicketView> {
         date: row['date'] ?? '', // Handle null
         departureTime: row['departureTime'] ?? '', // Handle null
         seatno: row['seatno'] ?? '', // Handle null
-        travelTime: row['travelTime'] ?? '', // Handle null
+        travelTime: row['travelTime'] ?? '',
+        amount: row['amount'] ?? '',
+        phoneNumber: row['phoneNumber']?? '',
+        saccoName: row['saccoName']?? '',// Handle null
       ));
     }
 
@@ -92,16 +94,9 @@ class _TicketViewState extends State<TicketView> {
     return tickets;
   }
   Widget buildTicketCard(TicketDetails ticket){
-    String truncatedSource = ticket.source?.substring(0, 3) ?? ''; // Check for null and provide default value
-    String truncatedDestination = ticket.destination?.substring(0, 3) ?? '';
-    // String truncatedSource = ticket.source.substring(0, 3);
-    // String truncatedDestination = ticket.destination.substring(0, 3);
-    // String travelTime = ticket.traveltime != null
-    //     ? DateFormat('HH:mm').format(ticket.traveltime! as DateTime)
-    //     : 'N/A';
-    // String departureTime = ticket.departuretime != null
-    //     ? DateFormat('HH:mm').format(ticket.departuretime! as DateTime)
-    //     : 'N/A';
+    String truncatedSource = ticket.source.substring(0, 3) ?? ''; // Check for null and provide default value
+    String truncatedDestination = ticket.destination.substring(0, 3) ?? '';
+
 
     return SizedBox(
       width: MediaQuery

@@ -1,178 +1,404 @@
+//import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:tiqiti/screens/checkout_screen.dart';
+import 'package:tiqiti/services/mpesa_service.dart';
+import 'package:mysql1/mysql1.dart';
+
+import 'checkout_screen.dart';
 
 class SeatBooking extends StatefulWidget {
-  const SeatBooking({super.key});
+  final String source;
+  final String destination;
+  final String saccoName;
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  SeatBooking({super.key, required this.source, required this.destination, required this.saccoName});
 
   @override
   State<SeatBooking> createState() => _SeatBookingState();
 }
 
 class _SeatBookingState extends State<SeatBooking> {
+
+  List<String> selectedSeats = [];
+  String selectedSeatText = ''; // To store selected seats
+  Set<String> bookedSeats = {};// To store booked seats from the database
+
+  // Function to update selected seat text
+  void updateSelectedSeatText() {
+    setState(() {
+      if (selectedSeats.isNotEmpty) {
+        // If there are selected seats, display them
+        selectedSeatText = selectedSeats.join(', '); // Concatenate selected seats with comma
+      } else {
+        // If no seats are selected, display a default message
+        selectedSeatText = 'Null';
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    updateSelectedSeatText(); // Call updateSelectedSeatText initially
+    fetchBookedSeats(); // Fetch booked seats from the database
+  }
+
+  // Function to toggle seat selection
+  void toggleSeatSelection(String seat) {
+    setState(() {
+      if (selectedSeats.contains(seat)) {
+        selectedSeats.remove(seat);
+      } else {
+        selectedSeats.add(seat);
+      }
+      updateSelectedSeatText();
+    });
+  }
+
+  // Function to check seat availability
+  bool isSeatAvailable(String seat) {
+    return !bookedSeats.contains(seat);
+  }
+
+  // Fetch booked seats from the database
+  Future<void> fetchBookedSeats() async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+        host: '10.0.2.2',
+        port: 3306,
+        user: 'root',
+        db: 'tiketi'));
+
+    var results = await conn.query('SELECT seatID FROM bookings WHERE busID = ? AND dateBooked = ?', ['bus_id_here', 'date_booked_here']);
+
+    Set<String> seats = {};
+    for (var row in results) {
+      seats.add(row['seatID'].toString());
+    }
+
+    setState(() {
+      bookedSeats = seats;
+    });
+
+    await conn.close();
+  }
+  // Function to show the payment dialog
+  void _showPaymentDialog(BuildContext context) {
+    final phoneController = TextEditingController();
+    final amountController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Mpesa Payment'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    if (!RegExp(r'^\d+$').hasMatch(value)) {
+                      return 'Please enter a valid phone number';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: amountController,
+                  decoration: const InputDecoration(labelText: 'Amount'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the amount';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid amount';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Pay'),
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  // Show a loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  );
+
+                  String phoneNumber = phoneController.text;
+                  String amount = amountController.text;
+                  final mpesaService = MpesaService();
+
+                  try {
+                    await mpesaService.lipaNaMpesaOnline(phoneNumber, amount);
+                    //Navigator.of(context).pop(); // Close loading indicator
+                    // Save transaction details to MySQL database
+                    await saveTransactionToDatabase(phoneNumber, amount);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment initiated successfully')));
+                    try{
+                      Future.delayed(const Duration(seconds: 3), () {
+                        //Navigator.of(context).pop();
+                        String? seat = selectedSeatText;
+                        String? amountPaid = amount;
+                        String? phone = phoneNumber;
+                        String? saccoN = widget.saccoName;
+                        String? start = widget. source;
+                        String? end = widget.destination;
+
+                        print('Attempting to navigate to CheckoutScreen');
+                        // Navigate using the context passed to showDialog
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                            CheckoutScreen(
+                              selectedSeat: seat,
+                              amountPaid: amountPaid,
+                              phoneNumber: phone,
+                              saccoName: saccoN,
+                              source: start,
+                              destination: end,
+                            ),
+                        ));
+                        print('navigated to CheckoutScreen');
+
+                      });
+
+                    }catch(e){
+                      print('Error navigating to CheckoutScreen: $e');
+                    }
+                    // Check if transaction was successfully saved
+                    // bool transactionSaved = await checkTransactionSaved(phoneNumber, amount);
+                    // print(phoneNumber);
+                    // print(amount);
+                    // if (transactionSaved) {
+                    //
+                    //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment and transaction saved successfully')));
+                    // } else {
+                    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save transaction')));
+                    // }
+                  } catch (e) {
+                    Navigator.of(context).pop(); // Close loading indicator
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to initiate payment')));
+                    print('Failed to initiate payment: $e');
+                  }
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+
+          ],
+        );
+      },
+    );
+
+  }
+  // Function to save transaction details to MySQL database
+  Future<void> saveTransactionToDatabase(String phoneNumber, String amount) async {
+    final selectedSeat = selectedSeatText; // Get the selected seats from your state
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    try {
+      await conn.query('INSERT INTO transactions (phone, amount, seat_No) VALUES (?, ?, ?)',
+          [phoneNumber, amount, selectedSeat]);
+      print('Transaction saved successfully');
+    } catch (e) {
+      print('Failed to save transaction');
+    } finally {
+      await conn.close();
+    }
+  }
+  // Function to check if transaction was successfully saved to database
+  Future<bool> checkTransactionSaved(String phoneNumber, String amount) async {
+    final conn = await MySqlConnection.connect(ConnectionSettings(
+      host: '10.0.2.2',
+      port: 3306,
+      user: 'root',
+      db: 'tiketi',
+    ));
+
+    try {
+      var result = await conn.query('SELECT COUNT(*) AS count FROM transactions WHERE phone = ? AND amount = ?',
+          [phoneNumber, amount]);
+      var count = result.first['count'] as int;
+      print('Count of transactions: $count');
+      return count > 0;
+    } catch (e) {
+      print('Failed to check transaction: $e');
+      return false;
+    } finally {
+      await conn.close();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       backgroundColor: const Color(0xFFF1FAEE),
       body: ListView(
         children: [
           Container(
-            width: MediaQuery.of(context).size.width,
-            height: 154,
-            decoration: const BoxDecoration(color: Color(0xFF1D3557)),
-            child: Column(
-              children: [
-                const Gap(20),
-               Row(
-                   children: [
+              width: MediaQuery.of(context).size.width,
+              height: 154,
+              decoration: const BoxDecoration(color: Color(0xFF1D3557)),
+              child: Column(
+                children: [
+                  const Gap(20),
+                  Row(
+                    children: [
                       IconButton(
                           onPressed:(){
                             Navigator.of(context).pop();
                           },
                           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white,)),
                       const Gap(80),
-                      const Center(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'METR',
-                                style: TextStyle(
-                                  color: Color(0xFFE63946),
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'O',
-                                style: TextStyle(
-                                  color: Color(0xFF3A86FF),
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'BUS',
-                                style: TextStyle(
-                                  color: Color(0xFFE63946),
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
+                      Center(
+                        child: Text(
+                          widget.saccoName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       )
                     ],
-               ),
-                const Gap(20),
-                Padding(
-                  padding: const EdgeInsets.only(left: 10,right: 10),
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '1400HRS',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            'ELDORET',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            width: 30,
-                            decoration: const ShapeDecoration(
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 1,
-                                  strokeAlign: BorderSide.strokeAlignCenter,
-                                  color: Color(0xFFD9D9D9),
-                                ),
+                  ),
+                  const Gap(20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10,right: 10),
+                    child:Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '1400HRS',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
-                          Container(
-                            width: 74,
-                            height: 30,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                side: const BorderSide(
+                            Text(
+                              widget.source,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 30,
+                              decoration: const ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
                                     width: 1,
-                                    strokeAlign: BorderSide.strokeAlignOutside,
-                                    color: Color(0xFFD9D9D9)
-                                ),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                '4HRS',
-                                style: TextStyle(
-                                  color: Color(0xFF3A86FF),
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
+                                    strokeAlign: BorderSide.strokeAlignCenter,
+                                    color: Color(0xFFD9D9D9),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Container(
-                            width: 30,
-                            decoration: const ShapeDecoration(
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 1,
-                                  strokeAlign: BorderSide.strokeAlignCenter,
-                                  color: Color(0xFFD9D9D9),
+                            Container(
+                              width: 74,
+                              height: 30,
+                              decoration: ShapeDecoration(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  side: const BorderSide(
+                                      width: 1,
+                                      strokeAlign: BorderSide.strokeAlignOutside,
+                                      color: Color(0xFFD9D9D9)
+                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '4HRS',
+                                  style: TextStyle(
+                                    color: Color(0xFF3A86FF),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                            Container(
+                              width: 30,
+                              decoration: const ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    width: 1,
+                                    strokeAlign: BorderSide.strokeAlignCenter,
+                                    color: Color(0xFFD9D9D9),
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                        ],
-                      ),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '1800HRS',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              '1800HRS',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'KISUMU',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              widget.destination,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                    ],
-                  ) ,
-                ),
-              ],
-            )
+                      ],
+                    ) ,
+                  ),
+                ],
+              )
           ),
           const Gap(20),
           Padding(
@@ -228,15 +454,14 @@ class _SeatBookingState extends State<SeatBooking> {
                         ),
                         const Gap(2),
                         Container(
-                          width: 15,
-                          height: 15,
+                          width: 20,
+                          height: 20,
                           decoration: const ShapeDecoration(
-                            color: Colors.white,
+                            color: Colors.green,
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
-                                width: 3,
-                                strokeAlign: BorderSide.strokeAlignOutside,
-                                color: Color(0xFFA8DADC),
+                                width: 1,
+                                color: Colors.green,
                               ),
                             ),
                           ),
@@ -305,18 +530,6 @@ class _SeatBookingState extends State<SeatBooking> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                Text(
-                  'D',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 25,
-                    fontFamily: 'JetBrains Mono',
-                    fontWeight: FontWeight.w400,
-                    height: 0,
-                  ),
-                )
-
-
               ],
             ),
           ),
@@ -327,414 +540,79 @@ class _SeatBookingState extends State<SeatBooking> {
               //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    width: MediaQuery.of(context).size.width*0.75,
-                    height: 520,
-                    padding: const EdgeInsets.only(left: 10, right: 10),
+                    width: MediaQuery.of(context).size.width * 0.75,
+                    //height: 520,
+                    padding: const EdgeInsets.only(left: 10, right: 10,top: 20,bottom: 20),
                     decoration: ShapeDecoration(
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                                height:50,
-                                width:50,
-                                child: Image(image: AssetImage("assets/images/entrance.png"))),
-                            SizedBox(
-                                height:50,
-                                width:50,
-                                child: Image(image: AssetImage("assets/images/Steering Wheel.png"))),
-
-                          ],
-
+                    child: SizedBox(
+                      height: 500,
+                      child: GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:3, // Adjust according to your layout
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 15,
+                          childAspectRatio: 1, // Adjust according to your layout
                         ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
+                        itemCount: 14, // Total number of seats
+                        itemBuilder: (context, index) {
+                          // Calculate seat number dynamically
+                          String seatNumber = '${index + 1}';
+                          bool isAvailable = !bookedSeats.contains(seatNumber);
+                          bool isSelected = selectedSeats.contains(seatNumber);
 
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFa8dadc)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFd9d9d9)),
-                              ),
+                          Color seatColor;
+                          if (!isAvailable) {
+                            seatColor =  Colors.grey; // Booked seats in grey
+                          } else if (isSelected) {
+                            seatColor = Colors.green; // Selected seats in red
+                          } else {
+                            seatColor = Colors.blue ; // Available seats in green
+                          }
 
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
+                          return GestureDetector(
+                            onTap: () {
+                              if (isAvailable) {
+                                toggleSeatSelection(seatNumber);
+                              }
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: seatColor,
+                                // selectedSeats.contains(seatNumber)
+                                //     ? Colors.green // Selected seat color
+                                //     : isSeatAvailable(seatNumber)
+                                //     ? Colors.blue // Available seat color
+                                //     : Colors.grey, // Unavailable seat color
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
+                              child: Center(
+                                child: Text(
+                                  seatNumber,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                        const Gap(10),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10,right: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFD9D9D9)),
-                              ),
-                              Container(
-                                width: 40,
-                                height: 41,
-                                decoration: const BoxDecoration(color: Color(0xFFA8DADC)),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  const Gap(3),
-                  const Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20, top: 30),
-                        child: Text(
-                          '1',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20,top: 5),
-                        child: Text(
-                          '2',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20, top: 5),
-                        child: Text(
-                          '3',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20),
-                        child: Text(
-                          '4',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20, top: 5),
-                        child: Text(
-                          '5',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20),
-                        child: Text(
-                          '6',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20),
-                        child: Text(
-                          '7',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 25),
-                        child: Text(
-                          '8',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '9',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 25,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
+
+                ]
+            ),
           ),
           const Gap(20),
           Container(
             width: MediaQuery.of(context).size.width,
-            height: 140,
+            //height: 140,
             padding: const EdgeInsets.only(top: 20),
             decoration: const ShapeDecoration(
               color: Colors.white,
@@ -747,11 +625,11 @@ class _SeatBookingState extends State<SeatBooking> {
             ),
             child: Column(
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Spacer(),
-                    Column(
+                    const Spacer(),
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -772,19 +650,19 @@ class _SeatBookingState extends State<SeatBooking> {
                         )
                       ],
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'SEAT 6C',
-                          style: TextStyle(
+                          "Seat:$selectedSeatText",
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Text(
+                        const Text(
                           'KES 2500',
                           style: TextStyle(
                             color: Colors.black,
@@ -794,7 +672,7 @@ class _SeatBookingState extends State<SeatBooking> {
                         )
                       ],
                     ),
-                    Spacer()
+                    const Spacer()
                   ],
                 ),
                 const Gap(20),
@@ -802,25 +680,30 @@ class _SeatBookingState extends State<SeatBooking> {
                   child: SizedBox(
                     height: 45,
                     child: ElevatedButton(
-                          onPressed:(){
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context)=> const CheckoutScreen())
-                            );
-                          },
-                          style: ButtonStyle(
-                              backgroundColor: const MaterialStatePropertyAll<Color>(Color(0xFFE63946)),
-                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)))
-                          ),
-                          child: const Text(
-                            'PROCEED',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                ),
+                      onPressed:(){
+                        print("transaction started");
+                        _showPaymentDialog(context);
+                        // Future.delayed(const Duration(seconds: 5), () {
+                        //   Navigator.of(context).pop();
+                        // });
+
+
+
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: const WidgetStatePropertyAll<Color>(Color(0xFFE63946)),
+                          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)))
+                      ),
+                      child: const Text(
+                        'PROCEED',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 //Gap(10)

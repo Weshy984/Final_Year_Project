@@ -1,14 +1,15 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
+//import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tiqiti/auth/signin.dart';
 import 'package:tiqiti/auth/signup.dart';
 import 'package:tiqiti/screens/bottom_bar.dart';
 import 'package:tiqiti/screens/home_screen.dart';
 
+
 void main() async {
-  //WidgetsFlutterBinding.ensureInitialized();
-  //await Firebase.initializeApp();
+  //await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

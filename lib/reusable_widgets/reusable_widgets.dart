@@ -62,13 +62,13 @@ Container signInSignUpBtn (
         onTap();
       },
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.resolveWith((states){
-          if(states.contains(MaterialState.pressed)){
+        backgroundColor: WidgetStateProperty.resolveWith((states){
+          if(states.contains(WidgetState.pressed)){
             return const Color(0xff1D3557);
           }
             return const Color(0xffd9d9d9);
         }),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))
       ),
       child: Text(
